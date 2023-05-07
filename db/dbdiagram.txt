@@ -1,0 +1,38 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table accounts as A {
+  id bigserial [pk]
+  owner varchar [not null]
+  currency varchar [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    owner
+  }
+}
+
+Table entries {
+  id bigserial [pk]
+  account_id bigint [ref: > A.id] // `Ref: entries.account_id > accounts.id` is the same as this line
+  amount bigint [not null, note: 'can be negative and positive']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    account_id
+  }
+}
+
+Table transfers {
+  id bigserial [pk]
+  from_account_id bigint [ref: > A.id]
+  to_account_id bigint [ref: > A.id]
+  amount bigint [not null, note: 'can be negative and positive']
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    from_account_id
+    to_account_id
+    (from_account_id, to_account_id)
+  }
+}
