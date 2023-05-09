@@ -7,29 +7,29 @@ Two approaches exists.
 
 With low level standard packages like context, database/sql, log, time, ...etc.
 
-Pros: High performance.
-Cons: Quite boring (bind sql fields to variables, write raw sql) and easy to make mistake.
+- Pros: High performance.
+- Cons: Quite boring (bind sql fields to variables, write raw sql) and easy to make mistake.
 
 ## With high level ORM(Object Relation Mapping)
 
 Using gorm.
 
-Pros: All basic CRUD is already implemented and code will be very short.
-Cons: When network is conjucted, 3~5 times lower than std.
+- Pros: All basic CRUD is already implemented and code will be very short.
+- Cons: When network is conjucted, 3~5 times lower than std.
 
 ## Middle way approach: sqlx
 
 Using sqlx library.
 
-Pros: As fast as std lib and binding to variable is already done.
-Cons: Code will be long and can cause mistake. Additionally, any error catched at runtime.
+- Pros: As fast as std lib and binding to variable is already done.
+- Cons: Code will be long and can cause mistake. Additionally, any error catched at runtime.
 
 # Best way: sqlc
 
 Using sqlc - metaprogramming of golang
 
-Pros: As fast as database/sql and easy to use. Automatic code gen. Catch sql error before code gen.
-Cons: only for postgres, mysql is experimental. (now, it seems to supports postgres, mysql, sqlite. see, https://docs.sqlc.dev/en/stable/tutorials/getting-started-mysql.html)
+- Pros: As fast as database/sql and easy to use. Automatic code gen. Catch sql error before code gen.
+- Cons: only for postgres, mysql is experimental. (now, it seems to supports postgres, mysql, sqlite. see, https://docs.sqlc.dev/en/stable/tutorials/getting-started-mysql.html)
 
 ## sqlc installation
 
@@ -108,4 +108,4 @@ If these're some mistakes, sqlc failed to compile queries!
 2. db.go - db client initialized with sql.db or sql.tx.
 3. queries - generated with the queries.
 
-For more details, refer to document and [../db/query/].
+For more details, refer to document and ../db/query/.
