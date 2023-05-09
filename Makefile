@@ -19,4 +19,7 @@ psql:
 sqlc:
 	$(GOPATH)/bin/sqlc generate
 
+test:
+	go test -v -cover ./...
+
 .PHONY: createdb dropdb postgres migrateup migratedown psql sqlc

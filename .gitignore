@@ -1,1 +1,2 @@
-db/sqlc/
+db/sqlc/*
+!db/sqlc/*_test.go

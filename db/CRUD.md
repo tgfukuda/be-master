@@ -26,7 +26,7 @@ Using sqlx library.
 
 # Best way: sqlc
 
-Using sqlc - metaprogramming of golang
+Using [sqlc](https://sqlc.dev/) - metaprogramming of golang
 
 - Pros: As fast as database/sql and easy to use. Automatic code gen. Catch sql error before code gen.
 - Cons: only for postgres, mysql is experimental. (now, it seems to supports postgres, mysql, sqlite. see, https://docs.sqlc.dev/en/stable/tutorials/getting-started-mysql.html)
