@@ -1,9 +1,9 @@
 # BE master class
 
 ## Requirements
-docker: 23.0.4
-sqlc: v1.18.0
-migrate: dev
+- docker: 23.0.4
+- sqlc: v1.18.0
+- migrate: dev
 
 ## setup postgres image
 
