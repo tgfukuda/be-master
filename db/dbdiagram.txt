@@ -4,6 +4,7 @@
 Table accounts as A {
   id bigserial [pk]
   owner varchar [not null]
+  balance bigint [not null]
   currency varchar [not null]
   created_at timestamptz [not null, default: `now()`]
 

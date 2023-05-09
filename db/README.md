@@ -29,7 +29,7 @@ Some tips
 
 [TablePlus](https://tableplus.com/)
 
-# migration
+# Part3: migration
 
 ## installation
 
@@ -57,4 +57,4 @@ Second is `.down.sql` and it's the contrary.
 Therefore, `000nnn_xxx_yyy.up.sql` should be the reverse transformation
 against `000nnn_xxx_yyy.down.sql`.
 
-
+Note: Need to write migrations manually.
