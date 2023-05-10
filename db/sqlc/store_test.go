@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,12 +14,17 @@ func TestTransferTx(t *testing.T) {
 	account1 := createRandAccount(t)
 	account2 := createRandAccount(t)
 
+	fmt.Printf(">>> before: %d, %d", account1.Balance, account2.Balance)
+
 	// run a concurrent transfer transaction
 	n := 5
 	amount := int64(10)
 
 	errs := make(chan error)
 	txResults := make(chan TransferTxResult)
+
+	// the number of thread exited
+	exited := make(map[int]bool)
 
 	for i := 0; i < n; i++ {
 		go func() {
@@ -75,5 +81,34 @@ func TestTransferTx(t *testing.T) {
 		assert.NoError(t, err)
 
 		// check the account's balance
+		fromAccount := result.FromAccount
+		assert.NotEmpty(t, fromAccount)
+		assert.Equal(t, account1.ID, fromAccount.ID)
+
+		toAccount := result.ToAccount
+		assert.NotEmpty(t, toAccount)
+		assert.Equal(t, account2.ID, toAccount.ID)
+
+		// account1 send `amount` to account2 five times, it will be k * `amount` where k is the number of transactions.
+		diff1 := account1.Balance - fromAccount.Balance
+		// it will be -k * `amount`
+		diff2 := account2.Balance - toAccount.Balance
+		assert.Equal(t, diff1, -diff2)
+
+		k := int(diff1 / amount)
+		assert.True(t, 1 <= k && k <= n)
+		assert.NotContains(t, exited, k)
+		exited[k] = true
 	}
+
+	// check final updated account
+	updatedAccount1, err := store.GetAccount(context.Background(), account1.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
+
+	updatedAccount2, err := store.GetAccount(context.Background(), account2.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
+
+	fmt.Printf(">>> after: %d, %d", updatedAccount1.Balance, updatedAccount2.Balance)
 }

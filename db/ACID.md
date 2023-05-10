@@ -58,3 +58,11 @@ go func() {
 d := <-c // receive something via channel
 
 ```
+
+# part 6: DB Lock
+
+## working with TDD
+
+Test Driven Development.
+
+Tests first, Improve it gradually.
