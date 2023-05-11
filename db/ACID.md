@@ -257,7 +257,7 @@ o means "possible" and x means "impossible" in the below tables.
 
 #### MySQL
 
-|mysql implementation|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
+|mysql|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
 |:-:|:-:|:-:|:-:|:-:|
 |Read Uncommited|o|o|o|o|
 |Read Committed|x|o|o|o|
