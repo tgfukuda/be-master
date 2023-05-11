@@ -14,7 +14,7 @@ func TestTransferTx(t *testing.T) {
 	account1 := createRandAccount(t)
 	account2 := createRandAccount(t)
 
-	fmt.Printf(">>> before: %d, %d", account1.Balance, account2.Balance)
+	fmt.Printf(">>> before: %d, %d\n", account1.Balance, account2.Balance)
 
 	// run a concurrent transfer transaction
 	n := 5
@@ -27,8 +27,10 @@ func TestTransferTx(t *testing.T) {
 	exited := make(map[int]bool)
 
 	for i := 0; i < n; i++ {
+		txName := fmt.Sprintf("tx %d", i)
 		go func() {
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.TransferTx(ctx, TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        amount,
@@ -89,7 +91,7 @@ func TestTransferTx(t *testing.T) {
 		assert.NotEmpty(t, toAccount)
 		assert.Equal(t, account2.ID, toAccount.ID)
 
-		fmt.Printf(">>> tx: %d, %d", account1.Balance, account2.Balance)
+		fmt.Printf(">>> tx: %d, %d\n", fromAccount.Balance, toAccount.Balance)
 		// account1 send `amount` to account2 five times, it will be k * `amount` where k is the number of transactions.
 		diff1 := account1.Balance - fromAccount.Balance
 		// it will be -k * `amount`
@@ -111,5 +113,5 @@ func TestTransferTx(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
 
-	fmt.Printf(">>> after: %d, %d", updatedAccount1.Balance, updatedAccount2.Balance)
+	fmt.Printf(">>> after: %d, %d\n", updatedAccount1.Balance, updatedAccount2.Balance)
 }
