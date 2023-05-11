@@ -1,4 +1,4 @@
-# part5: DB Transaction
+# DB Transaction
 
 DB transaction is a set of db operation.
 
@@ -59,7 +59,7 @@ d := <-c // receive something via channel
 
 ```
 
-# part 6: DB Lock
+# DB Lock
 
 ## working with TDD
 

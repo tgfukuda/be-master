@@ -1,4 +1,4 @@
-# Part 4: CRUD
+# CRUD
 Create, Read, Update, Delete
 
 Two approaches exists.
