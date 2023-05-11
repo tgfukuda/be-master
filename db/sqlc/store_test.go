@@ -89,7 +89,7 @@ func TestTransferTx(t *testing.T) {
 		assert.NotEmpty(t, toAccount)
 		assert.Equal(t, account2.ID, toAccount.ID)
 
-		fmt.Printf(">>> after: %d, %d", account1.Balance, account2.Balance)
+		fmt.Printf(">>> tx: %d, %d", account1.Balance, account2.Balance)
 		// account1 send `amount` to account2 five times, it will be k * `amount` where k is the number of transactions.
 		diff1 := account1.Balance - fromAccount.Balance
 		// it will be -k * `amount`

@@ -85,7 +85,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// TODO: update account balance	- need to avoid dead lock
+		// get account -> update account balance	- need to avoid dead lock
 
 		return nil
 	})

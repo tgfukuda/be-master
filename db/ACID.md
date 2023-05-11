@@ -66,3 +66,5 @@ d := <-c // receive something via channel
 Test Driven Development.
 
 Tests first, Improve it gradually.
+
+## DB Lock
