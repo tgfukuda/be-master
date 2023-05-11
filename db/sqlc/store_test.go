@@ -113,3 +113,58 @@ func TestTransferTx(t *testing.T) {
 
 	fmt.Printf(">>> after: %d, %d\n", updatedAccount1.Balance, updatedAccount2.Balance)
 }
+
+func TestTransferTxDeadLock(t *testing.T) {
+	store := NewStore(testDB)
+
+	account1 := createRandAccount(t)
+	account2 := createRandAccount(t)
+
+	fmt.Printf(">>> before: %d, %d\n", account1.Balance, account2.Balance)
+
+	// run a concurrent transfer transaction
+	n := 10
+	amount := int64(10)
+
+	errs := make(chan error)
+
+	for i := 0; i < n; i++ {
+		var fromAccount, toAccount Account
+
+		// switch sender and receiver. account1 on half and account2 on the other.
+		if i%2 == 0 {
+			fromAccount = account1
+			toAccount = account2
+		} else {
+			fromAccount = account2
+			toAccount = account1
+		}
+
+		go func() {
+			_, err := store.TransferTx(context.Background(), TransferTxParams{
+				FromAccountID: fromAccount.ID,
+				ToAccountID:   toAccount.ID,
+				Amount:        amount,
+			})
+
+			errs <- err
+		}()
+	}
+
+	// check results
+	for i := 0; i < n; i++ {
+		err := <-errs
+		assert.NoError(t, err)
+	}
+
+	// check final updated account. should be the same as before
+	updatedAccount1, err := store.GetAccount(context.Background(), account1.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, account1.Balance, updatedAccount1.Balance)
+
+	updatedAccount2, err := store.GetAccount(context.Background(), account2.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, account2.Balance, updatedAccount2.Balance)
+
+	fmt.Printf(">>> after: %d, %d\n", updatedAccount1.Balance, updatedAccount2.Balance)
+}

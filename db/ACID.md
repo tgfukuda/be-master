@@ -169,3 +169,46 @@ If There's `FOR UPDATE` statements of `accounts`, it's deadlock.
 
 A simple `FOR UPDATE` can be blocked by any related changes or reference like a foreign key constraint.
 To tell we won't update such key or primary key, `FOR NO KEY UPDATE`.
+
+### Another deadlock
+
+Update like
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = ... WHERE id = 1;
+UPDATE accounts SET balance = ... WHERE id = 2;
+COMMIT;
+
+BEGIN;
+UPDATE accounts SET balance = ... WHERE id = 2;
+UPDATE accounts SET balance = ... WHERE id = 1;
+COMMIT;
+```
+
+can also cause a deadlock.
+
+In this case, where `t1` is the first and `t2` is the second,
+
+```
+update id = 1 <- t1
+update id = 2 <- t2
+update id = 2 <- t1 -- cause deadlock!
+```
+
+because of the same Id of t2.
+To fix it, we need to update accounts with ordering id and
+
+```sql
+BEGIN;
+UPDATE accounts SET balance = ... WHERE id = 1;
+UPDATE accounts SET balance = ... WHERE id = 2;
+COMMIT;
+
+BEGIN;
+UPDATE accounts SET balance = ... WHERE id = 1;
+UPDATE accounts SET balance = ... WHERE id = 2;
+COMMIT;
+```
+
+The idea is making operations in the same order of keys no matter what we do.
