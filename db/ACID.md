@@ -318,5 +318,7 @@ the later transaction **fails** with hints like
 ## Refereces
 
 https://www.postgresql.org/docs/current/transaction-iso.html
+
 https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html
+
 https://youtu.be/4EajrPgJAk0
