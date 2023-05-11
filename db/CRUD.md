@@ -76,6 +76,7 @@ packages:
 
 Refer to [query reference](https://docs.sqlc.dev/en/stable/reference/query-annotations.html).
 Meta programming with sql.
+
 ```sql
         name of func    returns single object
             V           V
@@ -98,6 +99,40 @@ CREATE TABLE "accounts" (
   "currency" varchar NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
+```
+
+### sqlc tips
+
+To name a variables explicitly,
+
+```sql
+-- name: AddAccountBalance :one
+UPDATE accounts
+SET balance = balance + sqlc.arg(amount)
+WHERE id = sqlc.arg(id)
+RETURNING *;
+```
+
+will generate
+
+```go
+type AddAccountBalanceParams struct {
+	Amount int64 `json:"amount"`
+	ID     int64 `json:"id"`
+}
+
+func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, addAccountBalance, arg.Amount, arg.ID)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.Currency,
+		&i.CreatedAt,
+	)
+	return i, err
+}
 ```
 
 ## Generated codes

@@ -165,4 +165,7 @@ ALTER TABLE "transfers" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts
 has a foreign key constraint and any select statement of transfer get a lock.
 If There's `FOR UPDATE` statements of `accounts`, it's deadlock.
 
+### More precisely lock
 
+A simple `FOR UPDATE` can be blocked by any related changes or reference like a foreign key constraint.
+To tell we won't update such key or primary key, `FOR NO KEY UPDATE`.
