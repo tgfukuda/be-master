@@ -212,3 +212,117 @@ COMMIT;
 ```
 
 The idea is making operations in the same order of keys no matter what we do.
+
+## Isolation
+
+Dive Deeper into Isolation part of ACID.
+
+### Read Phenomena
+
+There're something called *Read Phenomena*.
+It is the interference between transactions running at the same time in a low level of Isolation.
+
+- Dirty Read: A transaction reads data written by other concurrent **uncommitted** transaction.
+- Non-Repeatable Read: A transaction reads the same row **twice**, and sees different value because other **committed** transaction modified it.
+- Phantom Read: Like Non-Repeatable Read but it is a re-execution of reading multiple rows due to changes of insert or delete by other **committed** transaction.
+- Serialization Anomaly: The result of a **group** of concurrent **commited** transactions is **impossible to achieve** if we try to run them sequentially in any order without overlapping.
+
+### 4 standard isolation levels
+
+[ANSI](https://ansi.org/) (American National Standards Institution) defines 4 levels of isolation.
+
+The smaller indexed, The lower leveled.
+
+1. Read Uncommited: Can see data written by uncommited transactions.
+2. Read Committed: Only see data of committed transactions. (Dirty Read cannot occurs)
+3. Repeatable Read: Same read query always returns same result no matter how may times executed and in the case some concurrent transaction has been committed.
+4. Serializable: Can Achieve same result if execute transactions serially in some order instead of overlapping.
+
+To work with isolation level,
+
+mysql
+
+```sql
+select @@transaction_isolation; -- in this session. default will be Repeatable Read
+select @@global.transaction_isolation; -- in the global
+set session transaction isolation level read committed; -- to change unread committed, for example.
+```
+
+postgres
+
+```sql
+show transaction isolation level; -- Read Committed will be default value.
+begin;  -- postgres only allowed to set the transaction level for a specific 1 transaction.
+set transaction isolation level read uncommitted;   -- set read uncommitted only for this transaction.
+:
+```
+
+#### What can Happens in each level?
+
+o means "possible" and x means "impossible" in the below tables.
+
+##### MySQL
+
+|mysql implementation|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
+|:-:|:-:|:-:|:-:|:-:|
+|Read Uncommited|o|o|o|o|
+|Read Committed|x|o|o|o|
+|Repeatable Read|x|x only for read but o|x only for read but o|o|
+|Serializable|x|x|x|x|
+
+Mysql's Repeatable Read prevents read-only queries from other transactions updates,
+but once the transaction write anything, it will be affected.
+
+Where `t1` and `t2` are transactions on Repeatable Read,
+
+```sql
+select balance from a where id = 1; <- t1 -- (1) assume 100
+update a set balance = balance - 10 where id = 1; <- t2 -- updated by t2 and it've commited. it became 90
+select balance from id = 1; <- t1 -- (2) same as (1) and 100
+update a set balance = balance - 10 where id = 1; <- t1 -- updated by t1, it becomes 80
+```
+
+Mysql's Serializable automatically make all `SELECT` into `SELECT FOR SHARE` and it allows other transaction only to read.
+By the lock, the above update cannot happens.
+The second update query must wait for `t1`'s release of the lock.
+However, if `t1` trys to query the forth update statement while `t2` waiting for `t1` complete,
+it causes deadlock and `t1` will fail and `t2` will succeed.
+
+For this reason, we must take care about
+not only a timeout of wait but also deadlock in Serializable level.
+
+Mysql handles Read Phenomena with *locking mechanism*.
+If two transaction try to write simultaneously,
+the later one wait for the other if its possible and
+if impossible, the later one faces with dead lock error.
+
+##### Postgres
+
+|postgres|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
+|:-:|:-:|:-:|:-:|:-:|
+|Read Uncommited|x|o|o|o|
+|Read Committed|x|o|o|o|
+|Repeatable Read|x|x|x||
+|Serializable|x|x|x|x|
+
+Postgres allowed to set read uncommitted level but *it behaves like read committed*
+because there's no circumstance to use read uncommitted, postgres said.
+
+The lowest level of postgres is *Read Committed*.
+
+See, https://www.postgresql.org/docs/current/transaction-iso.html.
+
+Postgres adopts *dependency detection* to handle Read Phenomena and if it can happens,
+the later transaction **fails** with hints like
+> HINT: The transaction might succeed if retried.
+
+### What should we do?
+
+- Retry mechanism: There might be errors, timeout or deadlock.
+- Read docs carefully: each database might implement isolation differently.
+
+## Refereces
+
+https://www.postgresql.org/docs/current/transaction-iso.html
+https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html
+https://youtu.be/4EajrPgJAk0
