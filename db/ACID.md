@@ -26,7 +26,7 @@ ROLLBACK; // abort transaction
 ## Composition rather than Inheritance
 
 To extend a struct, [composition](https://www.geeksforgeeks.org/composition-in-golang/) is
-a preferred way to inheritance.
+a preferred way to inheritance in golang.
 
 Note: https://hackthology.com/object-oriented-inheritance-in-go.html
 
