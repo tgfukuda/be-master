@@ -1,4 +1,6 @@
-# DB Transaction
+# ACID
+
+## DB Transaction
 
 DB transaction is a set of db operation.
 
@@ -23,7 +25,7 @@ BEGIN;
 ROLLBACK; // abort transaction
 ```
 
-## Composition rather than Inheritance
+### Composition rather than Inheritance
 
 To extend a struct, [composition](https://www.geeksforgeeks.org/composition-in-golang/) is
 a preferred way to inheritance in golang.
@@ -34,7 +36,7 @@ Composition doesn't extend a class itself, embbeds a struct and implements a fun
 
 We extends `Queries` in `db.go` because they are single queries and doesn't support tx.
 
-## Go routine
+### Go routine
 
 To write db is easy and concurrency also easily causes bug unless handling concurrency carefully.
 
@@ -58,14 +60,6 @@ go func() {
 d := <-c // receive something via channel
 
 ```
-
-# DB Lock
-
-## working with TDD
-
-Test Driven Development.
-
-Tests first, Improve it gradually.
 
 ## DB Lock
 
@@ -104,7 +98,7 @@ value := ctx.Value(txKey)
 The context lib of go provides what the ordering of transaction operations to us,
 but still doesn't what happens in postgres.
 
-#### postgres debugging statements
+### Postgres debugging statements
 
 See https://wiki.postgresql.org/wiki/Lock_Monitoring for how to get it.
 
@@ -257,11 +251,11 @@ set transaction isolation level read uncommitted;   -- set read uncommitted only
 :
 ```
 
-#### What can Happens in each level?
+### What can Happens in each level?
 
 o means "possible" and x means "impossible" in the below tables.
 
-##### MySQL
+#### MySQL
 
 |mysql implementation|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
 |:-:|:-:|:-:|:-:|:-:|
@@ -296,13 +290,13 @@ If two transaction try to write simultaneously,
 the later one wait for the other if its possible and
 if impossible, the later one faces with dead lock error.
 
-##### Postgres
+#### Postgres
 
 |postgres|Dirty Read|Non-Repeatable Read|Phantom Read|Serialization Anomaly|
 |:-:|:-:|:-:|:-:|:-:|
 |Read Uncommited|x|o|o|o|
 |Read Committed|x|o|o|o|
-|Repeatable Read|x|x|x||
+|Repeatable Read|x|x|x|o|
 |Serializable|x|x|x|x|
 
 Postgres allowed to set read uncommitted level but *it behaves like read committed*
