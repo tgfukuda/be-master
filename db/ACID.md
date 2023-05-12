@@ -246,7 +246,7 @@ postgres
 
 ```sql
 show transaction isolation level; -- Read Committed will be default value.
-begin;  -- postgres only allowed to set the transaction level for a specific 1 transaction.
+begin;  -- postgres allowed to set the transaction level for a specific 1 transaction, to do globally, https://stackoverflow.com/questions/62649971/how-to-change-transaction-isolation-level-globally.
 set transaction isolation level read uncommitted;   -- set read uncommitted only for this transaction.
 :
 ```
