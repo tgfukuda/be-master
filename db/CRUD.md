@@ -56,7 +56,7 @@ packages:
     emit_prepared_queries: false # for optimization.
     emit_interface: false # querier interfaces. useful when mock for tests.
     emit_exact_table_names: false # if false, sqlc make a struct name singular form. (table accounts -> struct Account)
-    emit_empty_slices: false
+    emit_empty_slices: true  # if true, we get empty slices instead of null returned by many query.
     emit_exported_queries: false
     emit_json_tags: true # add json tag to struct
     emit_result_struct_pointers: false
