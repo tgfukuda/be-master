@@ -6,20 +6,26 @@ import (
 	"fmt"
 )
 
-type Store struct {
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+	SafeDeleteAccountTx(ctx context.Context, arg SafeDeleteAccountTxParams) (SafeDeleteAccountTxResult, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
 // tx utility: unexported
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -55,7 +61,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -133,7 +139,7 @@ type SafeDeleteAccountTxResult struct {
 	Account `json:"deleted"`
 }
 
-func (store *Store) SafeDeleteAccountTx(ctx context.Context, arg SafeDeleteAccountTxParams) (SafeDeleteAccountTxResult, error) {
+func (store *SQLStore) SafeDeleteAccountTx(ctx context.Context, arg SafeDeleteAccountTxParams) (SafeDeleteAccountTxResult, error) {
 	var result SafeDeleteAccountTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
