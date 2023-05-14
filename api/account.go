@@ -83,3 +83,30 @@ func (server *Server) ListAccount(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, accounts)
 }
+
+type DeleteAccountRequest struct {
+	ID int64 `json:"id" binding:"required"`
+}
+
+func (server *Server) DeleteAccount(ctx *gin.Context) {
+	var req DeleteAccountRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	arg := db.SafeDeleteAccountTxParams{
+		ID: req.ID,
+	}
+
+	deleteRes, err := server.store.SafeDeleteAccountTx(ctx, arg)
+	if err == sql.ErrNoRows {
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+		return
+	} else if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, deleteRes)
+}

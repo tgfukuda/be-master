@@ -124,3 +124,35 @@ func addMoney(ctx context.Context, q *Queries, accountId1 int64, amount1 int64, 
 
 	return
 }
+
+type SafeDeleteAccountTxParams struct {
+	ID int64 `json:"id"`
+}
+
+type SafeDeleteAccountTxResult struct {
+	Account `json:"deleted"`
+}
+
+func (store *Store) SafeDeleteAccountTx(ctx context.Context, arg SafeDeleteAccountTxParams) (SafeDeleteAccountTxResult, error) {
+	var result SafeDeleteAccountTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+		result.Account, err = q.GetAccountForUpdateUnsafe(ctx, arg.ID)
+		if err != nil {
+			return err
+		}
+
+		err = q.DeleteAccount(ctx, result.ID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
