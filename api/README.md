@@ -55,4 +55,27 @@ For more details, https://github.com/gin-gonic/gin/blob/master/docs/doc.md#api-e
     ```
     $ curl -X GET "http://localhost:8080/accounts?page_size=10&page_id=2"
     ```
-    
+
+## Configuration with Viper
+
+[Viper](https://github.com/spf13/viper) provides some useful features for us.
+
+1. Resolve config file in many formats: JSON, TOML, YAML, INI and so on.
+2. Read config from environment variables and flags.
+3. Read config from remote system: Etcd, Consul.
+4. Live watching the file: like hot reload of webpack.
+
+We can manage a lot of configuration in development and change it depending on the environment i.e. production, staging, dev, local...
+
+### Basic Usage
+
+See, `util/config.go` and the official docs.
+
+```go
+    viper.AddConfigPath(path)   // set the directory path to read values from
+	viper.SetConfigName("app")  // we have app.env
+	viper.SetConfigType("env")	// json, xml, ... it makes sure that the file follows the correct format and has the correct extension.
+
+	viper.AutomaticEnv()    // override the values if there's any corresponding named env var.
+```
+
