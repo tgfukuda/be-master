@@ -88,3 +88,7 @@ Source mode is more suitable for prroduction but we use Reflect for simplicity.
     ```
     The idea is to specify how many times the interface should called and what arguments are.
 
+## References
+
+- [Mock,Stub,Dummy,Fake](https://stackoverflow.com/questions/3459287/whats-the-difference-between-a-mock-stub)
+- [Mocks are't Stubs](https://martinfowler.com/articles/mocksArentStubs.html)

@@ -44,3 +44,11 @@ func RandomCurrency() string {
 	n := len(currencies)
 	return currencies[rand.Intn(n)]
 }
+
+func RandomDate() time.Time {
+	// Generate a random number of seconds within a specific range
+	min := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC).Unix()
+	max := time.Now().Unix()
+
+	return time.Unix(RandomInt(min, max), 0)
+}

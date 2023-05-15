@@ -79,3 +79,49 @@ See, `util/config.go` and the official docs.
 	viper.AutomaticEnv()    // override the values if there's any corresponding named env var.
 ```
 
+## Test with GoMock and 
+
+See also: ../db/TEST.md.
+
+Implement mock testing in `account_test.go`.
+
+To use the generated mock,
+```go
+// NewMockStore creates a new mock instance.
+func NewMockStore(ctrl *gomock.Controller) *MockStore {
+	mock := &MockStore{ctrl: ctrl}
+	mock.recorder = &MockStoreMockRecorder{mock}
+	return mock
+}
+```
+
+receives `*gomock.Controller`, we need to setup it.
+
+`*gomock.Controller` asserts tests with `Finish`, keep in mind to call `defer ctrl.Finish()`.
+
+```go
+// Finish checks to see if all the methods that were expected to be called
+// were called. It should be invoked for each Controller. It is not idempotent
+// and therefore can only be invoked once.
+func (ctrl *Controller) Finish() { ... }
+```
+
+Make a Stub with the object
+
+```go
+// build stubs
+store.EXPECT().
+    GetAccount(gomock.Any(), gomock.Eq(account.ID)).	// expected call of GetAccount
+    Times(1).	// How exactly many times?
+    Return(account, nil)	// What should be returned?
+```
+
+Check API response with recorder instead of a real server.
+
+```go
+server := NewServer(store)
+recorder := httptest.NewRecorder()
+
+url := fmt.Sprintf("/accounts/%d", account.ID)
+request, err := http.NewRequest(http.MethodGet, url, nil)
+```
