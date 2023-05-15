@@ -37,7 +37,7 @@ func (tc *APITestCase) Run(t *testing.T) {
 		if tc.body == nil {
 			request, err = http.NewRequest(tc.method, tc.path, nil)
 		} else {
-			request, err = http.NewRequest(tc.method, tc.path, requestJsonBody2(t, tc.body))
+			request, err = http.NewRequest(tc.method, tc.path, requestJsonBody(t, tc.body))
 		}
 		assert.NoError(t, err)
 
@@ -53,7 +53,7 @@ func RunTestCases(t *testing.T, testCases []APITestCase) {
 	}
 }
 
-func requestJsonBody2(t *testing.T, req any) *bytes.Reader {
+func requestJsonBody(t *testing.T, req any) *bytes.Reader {
 	b, err := json.Marshal(req)
 	assert.NoError(t, err)
 	return bytes.NewReader(b)

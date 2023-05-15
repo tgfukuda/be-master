@@ -126,6 +126,3 @@ url := fmt.Sprintf("/accounts/%d", account.ID)
 request, err := http.NewRequest(http.MethodGet, url, nil)
 ```
 
-## Not Working abstraction of `not_working.go`...
-
-I don't know the reason but the tests written with `not_working.go` works well sometimes but doesn't other time.
