@@ -23,7 +23,10 @@ Some tips
 |:-:|:-:|
 | show databases | \l |
 | show tables | \dt |
-|desc <table_name>|select table_name,column_name,data_type from information_schema.columns where table_name='<table_name>'|
+|desc <table_name>| \d <table_name>|
+
+In postgres, `select table_name,column_name,data_type from information_schema.columns where table_name='<table_name>';`
+also show us the table details.
 
 ## GUI tools
 
@@ -31,7 +34,7 @@ Some tips
 
 # Migration
 
-## installation
+## Installation
 
 See, https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
 With go toolchain,
@@ -41,7 +44,15 @@ $ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@l
 will install migrate at `$GOPATH/bin/migrate`.
 (My linux failed to install with above instruction...)
 
-## best practice
+## Initialization
+
+We can use migrate to generate empty migration file with
+
+```
+$ migrate create -ext sql -dir db/migration/ -seq <desc_of_migrate>
+```
+
+## Best practice
 
 There should be 2 types of sql file for migration.
 
