@@ -36,7 +36,36 @@ There're many features and we use it by need.
 
 ### Validator notations
 
-see https://github.com/gin-gonic/gin/blob/master/docs/doc.md#model-binding-and-validation, https://pkg.go.dev/github.com/go-playground/validator#hdr-Baked_In_Validators_and_Tags and https://github.com/gin-gonic/examples/blob/master/custom-validation/server.go
+Golang has a [tag](https://zetcode.com/golang/struct-tag/) feature that enables us so many and Gin also uses tag.
+Gin uses a for model binding and validation.
+
+That looks like
+
+```go
+type CreateAccountRequest struct {
+	Owner    string `json:"owner" binding:"required"`
+	Currency string `json:"currency" binding:"required,oneof=USD EUR JPY"`
+}
+```
+
+See also https://github.com/gin-gonic/gin/blob/master/docs/doc.md#model-binding-and-validation, https://pkg.go.dev/github.com/go-playground/validator#hdr-Baked_In_Validators_and_Tags and https://github.com/gin-gonic/examples/blob/master/custom-validation/server.go.
+
+It's very useful but how about the hardcoded values of `USD EUR JPY`?
+
+#### Custom Validator
+
+To utilize validator, we need to implement a validator function of type Func exported by `"github.com/go-playground/validator/v10"`.
+
+(See [validator.go](./validator.go))
+Register the function with
+
+```go
+if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+    v.RegisterValidation("currency", validCurrency)
+}
+```
+
+and now we can use `currency` tag like `binding:"required,currency"` in Gin.
 
 ### Simple Request Handlers with Gin
 
@@ -126,3 +155,7 @@ url := fmt.Sprintf("/accounts/%d", account.ID)
 request, err := http.NewRequest(http.MethodGet, url, nil)
 ```
 
+## References
+
+- https://medium.com/golangspec/tags-in-golang-3e5db0b8ef3e
+- https://pkg.go.dev/reflect
