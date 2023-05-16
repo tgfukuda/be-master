@@ -69,7 +69,7 @@ and now we can use `currency` tag like `binding:"required,currency"` in Gin.
 
 ### Simple Request Handlers with Gin
 
-There're three major request parameter handlers in `account.go`.
+There're three major request parameter handlers in [account.go](./account.go).
 For more details, https://github.com/gin-gonic/gin/blob/master/docs/doc.md#api-examples 
 
 1. Parameters with Body (JSON): We retrieve given parameters from request body. refer to `CreateAccount`.
@@ -112,7 +112,7 @@ See, `util/config.go` and the official docs.
 
 See also: ../db/TEST.md.
 
-Implement mock testing in `account_test.go`.
+Implement mock testing in [account_test.go](./account_test.go).
 
 To use the generated mock,
 ```go

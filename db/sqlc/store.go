@@ -24,6 +24,8 @@ func NewStore(db *sql.DB) Store {
 	}
 }
 
+// var txKey = struct{}{}	// for debug
+
 // tx utility: unexported
 func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)

@@ -88,7 +88,7 @@ We defined
 ```go
 var txKey = struct{}{}
 ```
-in sqlc/store.go for this purpose.
+in [store.go](./sqlc/store.go) for this purpose.
 
 To get it,
 ```go

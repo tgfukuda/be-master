@@ -3,7 +3,7 @@
 In the first lecture, I learned about how to design db schema and ER-diagram with [dbdiagram](https://dbdiagram.io/d).
 
 It produces a MySQL, PostgreSQL, ER-diagram, and others easily from
-[./dbdiagram.txt] and helps the generated ones with team members.
+[dbdiagram.txt](./dbdiagram.txt) and helps the generated ones with team members.
 
 # Run docker instance for database
 
