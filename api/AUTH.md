@@ -129,3 +129,59 @@ if pqErr, ok := err.(*pq.Error); ok {
     }
 }
 ```
+
+## Hashed Password
+
+[Bcrypt](https://auth0.com/blog/hashing-in-action-understanding-bcrypt/) (Blowfish Cipher and Crypt for the password hash function of UNIX) often
+used for password hashing management.
+
+### Why Bcrypt?
+
+- We must avoid to store naked password for clear security reasons
+- There're some attacks like rainbow table now a days for the extreamly fast computation.
+
+Bcrypt provides us a completely different output with [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) that used in hash iterations
+even if the passwords themself are the same.
+
+The format is as follows.
+
+- First: Hash Algorism Identifier. 2A means bcrypt.
+- Second: Cost means key expantion rounds. 10 means 2^10 = 1024 rounds.
+- Third: 16bytes of salt used to calculate each iteration. (22 chars in [base64](https://base64.guru/learn/what-is-base64))
+- Forth: 24 bytes of hash itself. (31 chars in base64)
+
+```
+$2A$10$NQO...16bytes...ADP4...24bytes...YW
+ |  |          |                  |
+ALG COST     SALT               HASH
+```
+
+The implementation in golang is https://github.com/golang/crypto/blob/master/bcrypt/bcrypt.go.
+
+### Use bcrypt
+
+Tips: According to https://stackoverflow.com/questions/61283248/format-errors-in-go-s-v-or-w, use `%w` for formatting error.
+
+```
+// returns the bcrypt hash of the password
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("failed to hash password %w", err)
+	}
+	return string(hashedPassword), nil
+}
+
+// returns the password is correct or not
+func CheckPassword(password string, hashedPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+}
+```
+
+Then we can store it like [user.go](./user.go).
+
+## Resources
+
+- https://bcrypt.online/
+- https://en.wikipedia.org/wiki/Dictionary_attack
+- https://base64.guru/learn/what-is-base64
