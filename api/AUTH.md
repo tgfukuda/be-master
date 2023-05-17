@@ -117,4 +117,15 @@ Then, simply drop the table `users`.
 
 See [user.sql](../db/query/user.sql) and generated one.
 
+There're some constraint and we need to modify [account.go](./account.go) like commit 9fad23b282b7419a85173759a2b71b6121288d29.
+We can handle sql errors with more detail.
 
+```go
+if pqErr, ok := err.(*pq.Error); ok {
+    switch pqErr.Code.Name() {
+    case "foreign_key_violation", "unique_violation":
+        ctx.JSON(http.StatusForbidden, errorResponse(err))
+        return
+    }
+}
+```
