@@ -112,3 +112,9 @@ ALTER TABLE IF EXISTS "accounts" DROP CONSTRAINT IF EXISTS "accounts_owner_fkey"
 ```
 
 Then, simply drop the table `users`.
+
+## Add Queries
+
+See [user.sql](../db/query/user.sql) and generated one.
+
+
