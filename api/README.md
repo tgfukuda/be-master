@@ -27,6 +27,8 @@ If we need a routing part of it,
 - [HttpRouter](https://github.com/julienschmidt/httprouter) - seems not to be maintained well
 - [Chi](https://github.com/go-chi/chi)
 
+There's a list of [popular frameworks repository](https://github.com/mingrammer/go-web-framework-stars).
+
 ## Gin: most popular framework
 
 To have a quick reference, see [Examples](https://github.com/gin-gonic/examples)
@@ -240,3 +242,4 @@ func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher
 
 - https://medium.com/golangspec/tags-in-golang-3e5db0b8ef3e
 - https://pkg.go.dev/reflect
+- https://github.com/mingrammer/go-web-framework-stars
