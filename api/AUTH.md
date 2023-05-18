@@ -300,6 +300,11 @@ The version 2 is recommended one.
 - Payload: The payload part contains the actual data or claims of the token. It typically consists of a JSON object that holds various pieces of information relevant to the authentication or authorization process. The payload can include data such as user identification, expiration time, permissions, or any other relevant information needed for the token's purpose.
 - Footer: The footer part is an optional part of the PASETO token structure represented for public data. It allows for adding additional information or metadata to the token, such as a digital signature or any other data that may be useful for verification or validation purposes.
 
+## Implement in golang
+
+See [token](../token/).
+We use https://github.com/golang-jwt/jwt for JWT.
+
 ## Resources
 
 - https://bcrypt.online/
