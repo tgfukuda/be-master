@@ -1,5 +1,7 @@
 # Go testing
 
+See also [api](../api/README.md).
+
 go test file typically put the same directory as the target functionality and suffix with _test.
 
 In ./sqlc, account_test.go means to test `account.sql.go`.

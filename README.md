@@ -8,21 +8,30 @@ Each directory contains my summary of this course.
 - sqlc: v1.18.0
 - migrate: dev
 
-## setup postgres image
+### setup postgres image
 
 ```
 make postgres
 ```
 
-## migration
+### migration
 
 ```
 make createdb # if needed.
 make migrateup
 ```
 
-## gen sql orm client
+### gen sql orm client
 
 ```
 make sqlc
 ```
+
+## Summaries
+
+- [DB schema management](./db/README.md)
+- [Testing](./db//TEST.md)
+- [CRUD operations](./db/CRUD.md)
+- [ACID property of DB](./db/ACID.md)
+- [Web framework: Gin](./api/README.md)
+- [Token Based Authentication](./api/AUTH.md)
