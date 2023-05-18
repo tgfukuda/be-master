@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	mockdb "github.com/tgfukuda/be-master/db/mock"
@@ -36,11 +37,11 @@ func TestCreateTransfer(t *testing.T) {
 			name:   "OK",
 			path:   "/transfers",
 			method: http.MethodPost,
-			body: TransferRequest{
-				FromAccountID: account1.ID,
-				ToAccountID:   account2.ID,
-				Amount:        amount,
-				Currency:      account1.Currency,
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        account1.Currency,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().

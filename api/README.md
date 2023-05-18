@@ -155,6 +155,87 @@ url := fmt.Sprintf("/accounts/%d", account.ID)
 request, err := http.NewRequest(http.MethodGet, url, nil)
 ```
 
+### Gomock matcher
+
+In the stub object,
+
+```go
+store.EXPECT().
+    CreateUser(gomock.Any(), gomock.Eq(arg)).
+    Times(1).
+    Return(user, nil)
+```
+
+we use `gomock.Eq(...)` to specify an input with
+
+```go
+// Eq returns a matcher that matches on equality.
+//
+// Example usage:
+//   Eq(5).Matches(5) // returns true
+//   Eq(5).Matches(4) // returns false
+func Eq(x interface{}) Matcher { return eqMatcher{x} }
+```
+
+There're several builtin matchers, see https://github.com/golang/mock/blob/main/gomock/matchers.go.
+However, in the cases like [bcrypt auth](./AUTH.md), bcrypt always return a different output even with the same password.
+
+In such cases, we can't guess a returned object in advance, but
+
+```go
+    CreateUser(gomock.Any(), gomock.Any()).
+    Times(1).
+    Return(user, nil)
+```
+
+makes the test very weak.
+
+### Gomock Custom matcher
+
+The matcher interface is
+
+```go
+type Matcher interface {
+	// Matches returns whether x is a match.
+	Matches(x interface{}) bool
+
+	// String describes what the matcher matches.
+	String() string
+}
+```
+
+and we can define as
+
+```go
+type eqCreateUserParamsMatcher struct {
+	arg      db.CreateUserParams
+	password string
+}
+
+func (e eqCreateUserParamsMatcher) Matches(x interface{}) bool {
+	arg, ok := x.(db.CreateUserParams)
+	if !ok {
+		return false
+	}
+
+	err := util.CheckPassword(e.password, arg.HashedPassword)
+	if err != nil {
+		return false
+	}
+
+	e.arg.HashedPassword = arg.HashedPassword
+	return reflect.DeepEqual(e.arg, arg)
+}
+
+func (e eqCreateUserParamsMatcher) String() string {
+	return fmt.Sprintf("mathers arg %v and password %v", e.arg, e.password)
+}
+
+func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher {
+	return eqCreateUserParamsMatcher{arg: arg, password: password}
+}
+```
+
 ## References
 
 - https://medium.com/golangspec/tags-in-golang-3e5db0b8ef3e

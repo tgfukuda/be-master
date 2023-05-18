@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	mockdb "github.com/tgfukuda/be-master/db/mock"
@@ -93,7 +94,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name:   "OK",
 			path:   "/accounts",
 			method: http.MethodPost,
-			body:   CreateAccountRequest{Owner: account.Owner, Currency: account.Currency},
+			body:   gin.H{"owner": account.Owner, "currency": account.Currency},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Eq(db.CreateAccountParams{Owner: account.Owner, Currency: account.Currency, Balance: 0})).
@@ -109,7 +110,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name:   "InvalidRequest",
 			path:   "/accounts",
 			method: http.MethodPost,
-			body:   CreateAccountRequest{Owner: "", Currency: account.Currency},
+			body:   gin.H{"owner": "", "currency": account.Currency},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Eq(db.CreateAccountParams{Owner: account.Owner, Currency: account.Currency, Balance: 0})).
@@ -123,7 +124,7 @@ func TestCreateAccountAPI(t *testing.T) {
 			name:   "InternalError",
 			path:   "/accounts",
 			method: http.MethodPost,
-			body:   CreateAccountRequest{Owner: account.Owner, Currency: account.Currency},
+			body:   gin.H{"owner": account.Owner, "currency": account.Currency},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Eq(db.CreateAccountParams{Owner: account.Owner, Currency: account.Currency, Balance: 0})).
@@ -194,7 +195,7 @@ func TestDeleteAccount(t *testing.T) {
 			name:   "OK",
 			path:   "/delete_account",
 			method: http.MethodPost,
-			body:   DeleteAccountRequest{ID: account.ID},
+			body:   gin.H{"id": account.ID},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					SafeDeleteAccountTx(gomock.Any(), gomock.Eq(db.SafeDeleteAccountTxParams{ID: account.ID})).
@@ -210,7 +211,7 @@ func TestDeleteAccount(t *testing.T) {
 			name:   "NotFound",
 			path:   "/delete_account",
 			method: http.MethodPost,
-			body:   DeleteAccountRequest{ID: account.ID},
+			body:   gin.H{"id": account.ID},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					SafeDeleteAccountTx(gomock.Any(), gomock.Eq(db.SafeDeleteAccountTxParams{ID: account.ID})).
@@ -225,7 +226,7 @@ func TestDeleteAccount(t *testing.T) {
 			name:   "InvalidRequest",
 			path:   "/delete_account",
 			method: http.MethodPost,
-			body:   struct{ id string }{}, // missing id field
+			body:   gin.H{"id": ""}, // missing id field
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					SafeDeleteAccountTx(gomock.Any(), gomock.Eq(db.SafeDeleteAccountTxParams{ID: account.ID})).
@@ -239,7 +240,7 @@ func TestDeleteAccount(t *testing.T) {
 			name:   "InternalError",
 			path:   "/delete_account",
 			method: http.MethodPost,
-			body:   DeleteAccountRequest{ID: account.ID},
+			body:   gin.H{"id": account.ID},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					SafeDeleteAccountTx(gomock.Any(), gomock.Eq(db.SafeDeleteAccountTxParams{ID: account.ID})).
