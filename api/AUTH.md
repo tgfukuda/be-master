@@ -180,8 +180,133 @@ func CheckPassword(password string, hashedPassword string) error {
 
 Then we can store it like [user.go](./user.go).
 
+## Token-based Authentication
+
+Token based authentication is basically
+
+1. Client requests an access token (JWT, PASETO, ...) with username, password, ... and Server returns access token with its signature.
+2. Client ask other requests with the access token and Server verifies it and responses to that.
+
+The access token typically has lifetime duration and client can perform multiple operations within the duration.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+    participant Database
+
+    Client ->> Server: Request Login
+    Server ->> Client: Challenge (e.g., username/password)
+
+    alt Username/Password valid
+        Client ->> Server: Send Credentials
+        Server ->> Database: Validate Credentials
+        Database -->> Server: Validation Result
+
+        alt Credentials valid
+            Server ->> Client: Generate Token
+        else Credentials invalid
+            Server -->> Client: Authentication Failed
+            Client ->> Client: Show Error Message
+        end
+    else Username/Password invalid
+        Server -->> Client: Authentication Failed
+        Client ->> Client: Show Error Message
+    end
+
+    Client ->> Server: Include Token in Requests
+
+    Server ->> Server: Validate Token
+
+    alt Token valid
+        Server -->> Client: Respond to Request
+    else Token invalid
+        Server -->> Client: Unauthorized Access
+        Client ->> Client: Show Error Message
+    end
+```
+
+### JWT
+
+[Json Web Token](https://jwt.io/introduction/) is one of the access token.
+
+JWT is composed of three part that
+
+1. Header: algorithm and type like `{ "alg": "HS256", "typ": "JWT" }`
+2. Payload: content to sign such as `{ "id": "..uuid..", "username": "...", "expired_at": "..unixtime or UTC and so on.." }`. It can include any value.
+3. Sign: different for each signing algorithm like r, s, v of ECDSA or c (corresponding to d) of RSA
+
+They're encoded with base64 and not **encrypted**.
+
+### Signature algorithms
+
+There're two types of algorithm. There're versions for output length of 256, 384 and 512
+
+First is symmetric digital signature and both prover and verifier use the same key.
+Suitable for local (or internal) usecase.
+
+- HS256: [HMAC](https://en.wikipedia.org/wiki/HMAC)(Hash-based message authentication code) + [SHA256](https://en.wikipedia.org/wiki/SHA-2)(Secure Hash Algorithm).
+
+Second is Asymmetric DSA and the keys are different to prove and verify.
+Most popular schemes for web.
+
+- RS256: [RSA](https://en.wikipedia.org/wiki/RSA_(cryptosystem)) [PKCS](https://ja.wikipedia.org/wiki/PKCS)v1.5 + SHA256 (Public Key Cryptography Standard).
+- PS256: RSA [PSS](https://en.wikipedia.org/wiki/Probabilistic_signature_scheme) + SHA256 (Probabilistic Signature Scheme)
+- ES256: [ECDSA](https://eprint.iacr.org/2020/1390.pdf) + SHA256
+
+### Problem of JWT
+
+JWT gives us many flexibilities but it's a cause.
+
+1. Week Alg: It gives devs too many algorithms to choose and some of them have already been known to vulnerable.
+    - RSA PKCSv1.5: padding oracle attack
+    - ECDSA: invalid curve attack
+2. Trivial forgery
+    - set "alg" header to none.
+    - set "alg" header to "HS256" though server normally verifies token with RSA (sign with their public key.)
+
+## What is PASETO
+
+Platform-Agnostic SEcurity TOken is a new standard for the verification. It also has 2 DSA.
+
+1. Stronger algorithms
+    - Devs don't have to choose the alg.
+    - Only need to select the version of PASETO
+    - Each version has strong cipher suite
+    - Only 2 most recent PASTO versions are accepted
+2. Non Trivial forgery
+    - No "alg" header and "none" alg
+    - Everything is authenticated
+    - Encrypted Payload for symmetric DSA
+
+The version 1 of PASETO is compatible with legacy system.
+- symmetric DSA
+    - authenticated encryption (with [AEAD](https://cloud.google.com/bigquery/docs/aead-encryption-concepts?hl=ja))
+    - [AES256 CTR](https://crypto.stackexchange.com/questions/18538/aes256-cbc-vs-aes256-ctr-in-ssh) + HMAC SHA384
+- asymmetric DSA
+    - RSA PSS + SHA384
+
+The version 2 is recommended one.
+- symmetric DSA
+    - authenticated encryption (with [AEAD](https://cloud.google.com/bigquery/docs/aead-encryption-concepts))
+    - [XChaCha20-Poly1305](https://en.wikipedia.org/wiki/ChaCha20-Poly1305)
+- asymmetric DSA
+    - [Ed25519](https://en.wikipedia.org/wiki/EdDSA)
+
+### Structure of PASETO
+
+- Version: Indicates the version of the PASETO token format being used. It helps define the structure and processing rules for the token. The version is typically represented as a single character, such as "v1" or "v2".
+- Purpose: Describes the intended purpose or use case of the token. It provides semantic context to the token, indicating its purpose, such as "local" for local token use or "public" for public token use. The purpose helps determine how the token should be validated and processed.
+- Payload: The payload part contains the actual data or claims of the token. It typically consists of a JSON object that holds various pieces of information relevant to the authentication or authorization process. The payload can include data such as user identification, expiration time, permissions, or any other relevant information needed for the token's purpose.
+- Footer: The footer part is an optional part of the PASETO token structure represented for public data. It allows for adding additional information or metadata to the token, such as a digital signature or any other data that may be useful for verification or validation purposes.
+
 ## Resources
 
 - https://bcrypt.online/
 - https://en.wikipedia.org/wiki/Dictionary_attack
 - https://base64.guru/learn/what-is-base64
+- [SSL and TLS](https://www.youtube.com/watch?v=-f4Gbk-U758)
+- https://en.wikipedia.org/wiki/EdDSA
+- https://en.wikipedia.org/wiki/ChaCha20-Poly1305
+- https://cloud.google.com/bigquery/docs/aead-encryption-concepts
+- https://crypto.stackexchange.com/questions/18538/aes256-cbc-vs-aes256-ctr-in-ssh
