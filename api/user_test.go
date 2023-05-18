@@ -215,16 +215,10 @@ func requireMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 	data, err := ioutil.ReadAll(body)
 	assert.NoError(t, err)
 
-	var gotUser CreateUserResponse
+	var gotUser userResponse
 	err = json.Unmarshal(data, &gotUser)
 	assert.NoError(t, err)
 
-	rsp := CreateUserResponse{
-		Username:          user.Username,
-		FullName:          user.FullName,
-		Email:             user.Email,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.PasswordChangedAt,
-	}
+	rsp := newUserResponse(user)
 	assert.Equal(t, gotUser, rsp)
 }
