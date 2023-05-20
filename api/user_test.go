@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mockdb "github.com/tgfukuda/be-master/db/mock"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	"github.com/tgfukuda/be-master/token"
 	"github.com/tgfukuda/be-master/util"
 )
 
@@ -61,6 +63,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -71,7 +74,7 @@ func TestCreateUser(t *testing.T) {
 					Times(1).
 					Return(user, nil)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusOK, recoder.Code)
 				requireMatchUser(t, recoder.Body, user)
 			},
@@ -86,6 +89,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -95,7 +99,7 @@ func TestCreateUser(t *testing.T) {
 					}, password)).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusBadRequest, recoder.Code)
 			},
 		},
@@ -109,6 +113,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -118,7 +123,7 @@ func TestCreateUser(t *testing.T) {
 					}, password)).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusBadRequest, recoder.Code)
 			},
 		},
@@ -132,6 +137,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -141,8 +147,32 @@ func TestCreateUser(t *testing.T) {
 					}, password)).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:   "InvalidPassword",
+			path:   "/users",
+			method: http.MethodPost,
+			body: gin.H{
+				"username":  user.Username,
+				"password":  strings.Repeat("a", 73), // bcrypt default password length must be less than 73
+				"full_name": user.FullName,
+				"email":     user.Email,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
+						Username: user.Username,
+						FullName: user.FullName,
+						Email:    user.Email,
+					}, password)).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusInternalServerError, recoder.Code)
 			},
 		},
 		{
@@ -155,6 +185,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     "",
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -164,7 +195,7 @@ func TestCreateUser(t *testing.T) {
 					}, password)).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusBadRequest, recoder.Code)
 			},
 		},
@@ -178,6 +209,7 @@ func TestCreateUser(t *testing.T) {
 				"full_name": user.FullName,
 				"email":     user.Email,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateUser(gomock.Any(), EqCreateUserParams(db.CreateUserParams{
@@ -188,11 +220,113 @@ func TestCreateUser(t *testing.T) {
 					Times(1).
 					Return(db.User{}, sql.ErrConnDone)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusInternalServerError, recoder.Code)
 			},
 		},
 		// Add Forbidden test
+	})
+}
+
+func TestLoginUser(t *testing.T) {
+	user, password := randomUser(t)
+
+	RunTestCases(t, []APITestCase{
+		{
+			name:   "OK",
+			path:   "/users/login",
+			method: http.MethodPost,
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Eq(user.Username)).
+					Times(1).
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusOK, recoder.Code)
+				requireMatchLoginUserResponse(t, tokenMaker, recoder.Body, user, password)
+			},
+		},
+		{
+			name:   "BadRequest",
+			path:   "/users/login",
+			method: http.MethodPost,
+			body: gin.H{
+				"username": "###",
+				"password": password,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:   "NotFound",
+			path:   "/users/login",
+			method: http.MethodPost,
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Eq(user.Username)).
+					Times(1).
+					Return(db.User{}, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusNotFound, recoder.Code)
+			},
+		},
+		{
+			name:   "InternalError",
+			path:   "/users/login",
+			method: http.MethodPost,
+			body: gin.H{
+				"username": user.Username,
+				"password": password,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Eq(user.Username)).
+					Times(1).
+					Return(db.User{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusInternalServerError, recoder.Code)
+			},
+		},
+		{
+			name:   "UnAuthorizedPasswordUnMatch",
+			path:   "/users/login",
+			method: http.MethodPost,
+			body: gin.H{
+				"username": user.Username,
+				"password": util.RandomString(6),
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetUser(gomock.Any(), gomock.Eq(user.Username)).
+					Times(1).
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusUnauthorized, recoder.Code)
+			},
+		},
 	})
 }
 
@@ -221,4 +355,20 @@ func requireMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
 
 	rsp := newUserResponse(user)
 	assert.Equal(t, gotUser, rsp)
+}
+
+func requireMatchLoginUserResponse(t *testing.T, tokenMaker token.Maker, body *bytes.Buffer, user db.User, password string) {
+	data, err := ioutil.ReadAll(body)
+	assert.NoError(t, err)
+
+	var gotRes loginUserResponse
+	err = json.Unmarshal(data, &gotRes)
+	assert.NoError(t, err)
+
+	rsp := newUserResponse(user)
+
+	assert.Equal(t, rsp, gotRes.User)
+	payload, err := tokenMaker.VerifyToken(gotRes.AccessToken)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, payload)
 }

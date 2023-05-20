@@ -2,15 +2,16 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	"github.com/tgfukuda/be-master/token"
 )
 
 type CreateAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
@@ -21,8 +22,9 @@ func (server *Server) CreateAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0, // account initiated with balance 0
 	}
@@ -63,6 +65,13 @@ func (server *Server) GetAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if account.Owner != authPayload.Username {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -78,7 +87,9 @@ func (server *Server) ListAccounts(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
@@ -103,11 +114,8 @@ func (server *Server) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.SafeDeleteAccountTxParams{
-		ID: req.ID,
-	}
-
-	deleteRes, err := server.store.SafeDeleteAccountTx(ctx, arg)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	target, err := server.store.GetAccount(ctx, req.ID)
 	if err == sql.ErrNoRows {
 		ctx.JSON(http.StatusNotFound, errorResponse(err))
 		return
@@ -116,5 +124,17 @@ func (server *Server) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, deleteRes)
+	if authPayload.Username != target.Owner {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	err = server.store.DeleteAccount(ctx, req.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"deleted": target})
 }

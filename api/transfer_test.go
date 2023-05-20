@@ -7,19 +7,25 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	mockdb "github.com/tgfukuda/be-master/db/mock"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	"github.com/tgfukuda/be-master/token"
 	"github.com/tgfukuda/be-master/util"
 )
 
 func TestCreateTransfer(t *testing.T) {
-	account1 := randomAccount()
-	account2 := randomAccount()
+	user1, _ := randomUser(t)
+	account1 := randomAccount(user1.Username)
+	user2, _ := randomUser(t)
+	account2 := randomAccount(user2.Username)
 	account2.Currency = account1.Currency
+	user3, _ := randomUser(t)
+	account3 := randomAccount(user3.Username)
 	amount := account1.Balance / 2
 	transfer := randomTransfer(account1, account2, amount)
 	entry1 := randomEntry(account1, -amount)
@@ -43,6 +49,9 @@ func TestCreateTransfer(t *testing.T) {
 				"amount":          amount,
 				"currency":        account1.Currency,
 			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
@@ -59,12 +68,160 @@ func TestCreateTransfer(t *testing.T) {
 					Times(1).
 					Return(result, nil)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusOK, recoder.Code)
 				requireMatchTransferTxResult(t, recoder.Body, result)
 			},
 		},
-		// TODO - more test
+		{
+			name:   "UnAuthorizedFrom",
+			path:   "/transfers",
+			method: http.MethodPost,
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        account1.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, account3.Owner, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(1).
+					Return(account1, nil)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusUnauthorized, recoder.Code)
+			},
+		},
+		{
+			name:   "InvalidFromId",
+			path:   "/transfers",
+			method: http.MethodPost,
+			body: gin.H{
+				"to_account_id": account2.ID,
+				"amount":        amount,
+				"currency":      account1.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:   "InvalidToId",
+			path:   "/transfers",
+			method: http.MethodPost,
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"amount":          amount,
+				"currency":        account1.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:   "InvalidAmount",
+			path:   "/transfers",
+			method: http.MethodPost,
+			body: gin.H{
+				"from_account_id": "",
+				"to_account_id":   account2.ID,
+				"amount":          0,
+				"currency":        account1.Currency,
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:   "InvalidCurrency",
+			path:   "/transfers",
+			method: http.MethodPost,
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        "NOT A CURRENCY",
+			},
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Any()).
+					Times(0)
+
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
+				assert.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
 	})
 }
 
