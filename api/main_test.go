@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	mockdb "github.com/tgfukuda/be-master/db/mock"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	"github.com/tgfukuda/be-master/token"
 	"github.com/tgfukuda/be-master/util"
 )
 
@@ -35,8 +36,9 @@ type APITestCase struct {
 	path          string
 	method        string
 	body          gin.H // expected json struct. nil if no body.
+	setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 	buildStubs    func(store *mockdb.MockStore)
-	checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
+	checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker)
 }
 
 func (tc *APITestCase) Run(t *testing.T) {
@@ -55,9 +57,11 @@ func (tc *APITestCase) Run(t *testing.T) {
 		request, err = http.NewRequest(tc.method, tc.path, requestJsonBody(t, tc.body))
 		assert.NoError(t, err)
 
+		tc.setupAuth(t, request, server.tokenMaker)
+
 		server.router.ServeHTTP(recorder, request)
 
-		tc.checkResponse(t, recorder)
+		tc.checkResponse(t, recorder, server.tokenMaker)
 	})
 }
 
@@ -67,7 +71,7 @@ func RunTestCases(t *testing.T, testCases []APITestCase) {
 	}
 }
 
-func requestJsonBody(t *testing.T, req any) *bytes.Reader {
+func requestJsonBody(t *testing.T, req gin.H) *bytes.Reader {
 	b, err := json.Marshal(req)
 	assert.NoError(t, err)
 	return bytes.NewReader(b)
