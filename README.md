@@ -1,6 +1,7 @@
 # BE master class
 
-The original course found [here](https://github.com/techschool/simplebank).
+My backend educational repository based on [this course](https://github.com/techschool/simplebank).
+Some addtional contents contains.
 Each directory contains my summary of this course.
 
 ## Requirements
