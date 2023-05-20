@@ -139,6 +139,48 @@ then docker-compose do ...
 [wait-for](https://github.com/eficode/wait-for) is a script designed to synchronize services like docker containers.
 It's very simple, see [compose file](./docker-compose.yml), [start.sh](./start.sh).
 
+## Deployment with AWS
+
+Prepare for your [aws account](https://aws.amazon.com/jp/account/).
+
+### ECR
+
+[ECR](https://ap-northeast-1.console.aws.amazon.com/ecr/repositories) is a container management service provided by aws.
+We use it for a example deployment workflow.
+New ECR repository can be created by `Create repository` of top right bottun.
+
+At the repository window we can see `View push command`, but basically we won't use it directly from local.
+Instead, github actions performs build, tag and push.
+
+### Setup workflow
+
+We use https://github.com/marketplace/actions/amazon-ecr-login-action-for-github-actions for deploy.
+
+The workflow is (it seems to be the old version)
+
+```yml
+- name: Configure AWS credentials
+    uses: aws-actions/configure-aws-credentials@v1
+    with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: ap-northeast-1
+
+- name: Login to Amazon ECR
+    id: login-ecr
+    uses: aws-actions/amazon-ecr-login@v1
+
+- name: Build, tag, and push image to Amazon ECR
+    env:
+    ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    ECR_REPOSITORY: ecr_repository_name # the name of repo created in the previous step
+    IMAGE_TAG: ${{ github.sha }}
+    run: |
+    docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+    docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+```
+
+We use `Settings -> Secrets -> Actions` tab to set `${{ secrets.AWS_SECRET_ACCESS_KEY }}` and `${{ secrets.AWS_ACCESS_KEY_ID }}`.
 
 ## References
 - https://hub.docker.com/
