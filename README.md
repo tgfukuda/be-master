@@ -35,3 +35,4 @@ make sqlc
 - [ACID property of DB](./db/ACID.md)
 - [Web framework: Gin](./api/README.md)
 - [Token Based Authentication](./api/AUTH.md)
+- [Middlewares](./api/MIDLLEWARE.md)
