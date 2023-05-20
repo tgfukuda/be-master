@@ -9,6 +9,8 @@ RUN go build -o main main.go
 FROM alpine:3.17
 WORKDIR /app
 COPY --from=builder /app/main .
+COPY --from=builder /app/main .
+COPY app.env .
 
 # only specify what a port will intend to be used, don't force it
 EXPOSE 8080
