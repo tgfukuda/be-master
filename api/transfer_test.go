@@ -222,6 +222,7 @@ func TestCreateTransfer(t *testing.T) {
 				assert.Equal(t, http.StatusBadRequest, recoder.Code)
 			},
 		},
+		// TODO: add tests
 	})
 }
 
