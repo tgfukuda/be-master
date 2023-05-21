@@ -160,22 +160,22 @@ We use https://github.com/marketplace/actions/amazon-ecr-login-action-for-github
 
 ```yml
 - name: Configure AWS credentials
-    uses: aws-actions/configure-aws-credentials@v1
-    with:
-    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    aws-region: ap-northeast-1
+  uses: aws-actions/configure-aws-credentials@v1
+  with:
+  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  aws-region: ap-northeast-1
 
 - name: Login to Amazon ECR
-    id: login-ecr
-    uses: aws-actions/amazon-ecr-login@v1
+  id: login-ecr
+  uses: aws-actions/amazon-ecr-login@v1
 
 - name: Build, tag, and push image to Amazon ECR
-    env:
-    ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    ECR_REPOSITORY: ecr_repository_name # the name of repo created in the previous step
-    IMAGE_TAG: ${{ github.sha }}
-    run: |
+  env:
+  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  ECR_REPOSITORY: ecr_repository_name # the name of repo created in the previous step
+  IMAGE_TAG: ${{ github.sha }}
+  run: |
     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
     docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 ```
