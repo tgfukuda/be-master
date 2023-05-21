@@ -160,22 +160,22 @@ We use https://github.com/marketplace/actions/amazon-ecr-login-action-for-github
 
 ```yml
 - name: Configure AWS credentials
-    uses: aws-actions/configure-aws-credentials@v1
-    with:
-    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    aws-region: ap-northeast-1
+  uses: aws-actions/configure-aws-credentials@v1
+  with:
+  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  aws-region: ap-northeast-1
 
 - name: Login to Amazon ECR
-    id: login-ecr
-    uses: aws-actions/amazon-ecr-login@v1
+  id: login-ecr
+  uses: aws-actions/amazon-ecr-login@v1
 
 - name: Build, tag, and push image to Amazon ECR
-    env:
-    ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-    ECR_REPOSITORY: ecr_repository_name # the name of repo created in the previous step
-    IMAGE_TAG: ${{ github.sha }}
-    run: |
+  env:
+  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  ECR_REPOSITORY: ecr_repository_name # the name of repo created in the previous step
+  IMAGE_TAG: ${{ github.sha }}
+  run: |
     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
     docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 ```
@@ -198,28 +198,6 @@ Error: User: arn:aws:iam::***:user/github-ci is not authorized to perform: ecr:G
 ```
 
 will happen at `Login to Amazon ECR`.
-
-Instead,
-```yml
-- name: Checkout repo
-  uses: actions/checkout@v3
-
-- name: Configure AWS credentials
-  uses: aws-actions/configure-aws-credentials@v2 # More information on this action can be found below in the 'AWS Credentials' section
-  with:
-  role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-  aws-region: aws-region-1
-```
-
-and 
-
-1. In the "Select type of trusted entity" section, choose the "AWS service" option.
-2. In the "Choose a use case" section, select "CodeBuild" as the service that will use this role. CodeBuild is used as the example service because it supports assuming IAM roles in GitHub Actions.
-3. In the "Attach permissions policies" section, search for and select the necessary policies that grant the required permissions for your ECR deployment. For example, you might select the "AmazonEC2ContainerRegistryPowerUser" policy or create a custom policy with the desired permissions.
-4. Provide a name for the role, such as "GitHubActionsECRDeployRole".
-5. After the role is created, navigate to the "Roles" section in the IAM service and find the newly created role in the list. Click on the role to view its details. In the "Summary" section of the role details, copy the ARN (Amazon Resource Name) value of the IAM role.
-6. In your GitHub repository, navigate to the "Settings" tab and select "Secrets" from the left-hand sidebar.
-7. Create a secret named AWS_ROLE_ARN and set its value to the copied ARN of the IAM role.
 
 ## References
 - https://hub.docker.com/
