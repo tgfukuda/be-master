@@ -200,6 +200,74 @@ Error: User: arn:aws:iam::***:user/github-ci is not authorized to perform: ecr:G
 
 will happen at `Login to Amazon ECR`.
 
+### Production DB: RDS
+
+We can setup RDBs (MySQL, PostgreSQL, Oracle, ...) with RDS and NoSQLs (GraphQL) with DynamoDB.
+
+Migration will performs by app, but we can do by ourselves with some modifications to `make migrateup`
+
+```bash
+migrate -path db/migration -database "postgresql://<aws_exported_user>:<aws_exported_pass>@<RDS_Endpoint>:5432/simple_bank?sslmode=disable" -verbose up
+```
+
+## Secret Management
+
+[Secret Manager](https://medium.com/awesome-cloud/aws-secrets-manager-overview-introduction-to-secrets-manager-getting-started-641bc722cd1a)
+and
+[Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+allows us to store credentials for cheap price.
+We use `Secret Manager` for storing app.env values of production.
+
+### AWS cli
+
+Install it by https://aws.amazon.com/cli/ and configure it.
+[aws-mfa](https://github.com/broamski/aws-mfa) helps us login with cli.
+
+```bash
+$ aws configure # configuration will create at ~/.aws/credentials
+:
+```
+
+### Ritrieve Secrets with cli
+
+Add IAM setting of SecretManager to corresponding user, 
+
+```bash
+$ aws secretmanager get-secret-value --secret-id <secret-id or arn>
+{
+    "ARN": "arn:aws:secretmanager:...",
+    "Name": "...",
+    "SecretString": "{\"DB_SOURCE\":\"...\", ..stored secrets..}"
+    "VersionStages": [
+        "..."
+    ],
+    "CreatedDate": "..."
+} 
+```
+
+returns stored ones. `"SecretString"` is a JSON for them.
+To get human-readable data only for it, `aws secretmanager get-secret-value --secret-id <secret-id or arn> --query SecretString --output text`.
+
+### Parse it with jq
+
+[jq](https://stedolan.github.io/jq/) is a powerful cli to process JSON string.
+We used it to make `SecretString` into environment variables in production.
+
+- to_entries: make a json into key-value pairs array i.e. `{"a": 1, "b": 2}` into `{ {"key":"a", "value": 1}, {"key":"b", "value": 2}}`.
+- map: apply functions to all entries.
+- string interpolation of \(`op`): enable operations in a string.
+- array object iterator: remove array/object brackets from output
+- raw -r: remove string's quote.
+
+```bash
+$ jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env # write them to env
+```
+
+### Pull production Image from private registry
+
+See https://docs.aws.amazon.com/cli/latest/reference/ecr/get-login-password.html#examples and
+run `sudo docker pull <aws_account_id>.dkr.ecr.<region>.amazonaws.com`.
+
 ## References
 - https://hub.docker.com/
 - https://docs.docker.com/engine/reference/commandline/docker/
@@ -208,3 +276,5 @@ will happen at `Login to Amazon ECR`.
 - https://docs.docker.com/build/building/multi-stage/
 - https://docs.docker.com/compose/
 - https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html
+- https://medium.com/awesome-cloud/aws-difference-between-secrets-manager-and-parameter-store-systems-manager-f02686604eae
+- https://medium.com/awesome-cloud/aws-secrets-manager-overview-introduction-to-secrets-manager-getting-started-641bc722cd1a
