@@ -200,6 +200,164 @@ Error: User: arn:aws:iam::***:user/github-ci is not authorized to perform: ecr:G
 
 will happen at `Login to Amazon ECR`.
 
+### Production DB: RDS
+
+We can setup RDBs (MySQL, PostgreSQL, Oracle, ...) with RDS and NoSQLs (GraphQL) with DynamoDB.
+
+Migration will performs by app, but we can do by ourselves with some modifications to `make migrateup`
+
+```bash
+migrate -path db/migration -database "postgresql://<aws_exported_user>:<aws_exported_pass>@<RDS_Endpoint>:5432/simple_bank?sslmode=disable" -verbose up
+```
+
+## Secret Management
+
+[Secret Manager](https://medium.com/awesome-cloud/aws-secrets-manager-overview-introduction-to-secrets-manager-getting-started-641bc722cd1a)
+and
+[Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+allows us to store credentials for cheap price.
+We use `Secret Manager` for storing app.env values of production.
+
+### AWS cli
+
+Install it by https://aws.amazon.com/cli/ and configure it.
+[aws-mfa](https://github.com/broamski/aws-mfa) helps us login with cli.
+
+```bash
+$ aws configure # configuration will create at ~/.aws/credentials
+:
+```
+
+### Ritrieve Secrets with cli
+
+Add IAM setting of SecretManager to corresponding user, 
+
+```bash
+$ aws secretmanager get-secret-value --secret-id <secret-id or arn>
+{
+    "ARN": "arn:aws:secretmanager:...",
+    "Name": "...",
+    "SecretString": "{\"DB_SOURCE\":\"...\", ..stored secrets..}"
+    "VersionStages": [
+        "..."
+    ],
+    "CreatedDate": "..."
+} 
+```
+
+returns stored ones. `"SecretString"` is a JSON for them.
+To get human-readable data only for it, `aws secretmanager get-secret-value --secret-id <secret-id or arn> --query SecretString --output text`.
+
+### Parse it with jq
+
+[jq](https://stedolan.github.io/jq/) is a powerful cli to process JSON string.
+We used it to make `SecretString` into environment variables in production.
+
+- to_entries: make a json into key-value pairs array i.e. `{"a": 1, "b": 2}` into `{ {"key":"a", "value": 1}, {"key":"b", "value": 2}}`.
+- map: apply functions to all entries.
+- string interpolation of \(`op`): enable operations in a string.
+- array object iterator: remove array/object brackets from output
+- raw -r: remove string's quote.
+
+```bash
+$ jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env # write them to env
+```
+
+### Pull production Image from private registry
+
+See https://docs.aws.amazon.com/cli/latest/reference/ecr/get-login-password.html#examples and
+run `sudo docker pull <aws_account_id>.dkr.ecr.<region>.amazonaws.com`.
+
+## K8s
+
+[Kubernetes](https://kubernetes.io/) is oss container orhcestration engin.
+Automating deployment, scaling, and management of containerized application.
+
+### Components
+
+2 main parts.
+
+1. Worker Node: responsible for each container istself running well.
+    - Kuberlet agent: make sure containers run inside pods.
+    - Container runtimes: Docker, containerd, CRI-O, ...
+    - Kube-proxy: maintain network rules, allow communication with pods
+2. Master Node(Control Plane): responsible for container instances working well.
+    - API Server: frontend for each worker.
+    - etcd: backing store for all cluster data
+    - scheduler: order what it do to unassigned worker node
+    - controller manager: set of controllers like node controller, job controller, endpoint controller, and others.
+    - cloud controller manager: frontend for cloud (aws, gcp, ...) and has several controllers of node controller, route controller, service controller.
+
+```mermaid
+graph LR
+
+  subgraph Control Plane
+    API_Server((API Server))
+    Controller_Manager((Controller Manager))
+    Scheduler((Scheduler))
+    etcd((etcd))
+    API_Server --> etcd
+    API_Server --> Controller_Manager
+    API_Server --> Scheduler
+  end
+
+  subgraph Worker Nodes
+    Kubelet((Kubelet))
+    Kube_Proxy((Kube-Proxy))
+    Pod1((Pod 1))
+    Pod2((Pod 2))
+    Kubelet --> Pod1
+    Kubelet --> Pod2
+    Kube_Proxy --> Pod1
+    Kube_Proxy --> Pod2
+  end
+
+  API_Server --> Kubelet
+```
+
+### Amazon EKS
+
+[EKS](https://ap-northeast-1.console.aws.amazon.com/eks/home) is a fully managed k8s control plane.
+To Update the cluster, EKS provides us very simple UI. (Minimum nodes, Maximum nodes, ...)
+
+#### Required Roles
+
+- For EKS: AmazonEKSClusterPolicy
+- For Worker: AmazonEC2ContainerRegistryReadOnly (for ecr), AmazonEKS_CNI_Policy, AmazonEKSWorkerNodePolicy
+
+### Kubectl
+
+kubectl is a cli for k9s, install it as this [instruction](https://kubernetes.io/docs/tasks/tools/).
+
+Access and update EKS with `aws eks update-kubeconfig --name <EKS_NAME> --region <REGION>`.
+It will update the context in `~/.kube/config`.
+
+```bash
+$ export AWS_PROFILE=... # if needed
+$ kubectl cluster-info # shows eks info itself
+$ kubectl get pods # worker nodes
+```
+
+To add access of eks to not a creater, we use [aws-auth.yaml](https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html).
+
+```yaml
+apiVersion: v1
+ kind: ConfigMap
+ data:
+   mapUsers: |
+     - username: github-ci
+       userarn: <arn of user>
+       groups:
+       - system:masters
+ metadata:
+   name: aws-auth
+   namespace: kube-system
+```
+
+### K9S
+
+Interactive UI for k8s.
+
 ## References
 - https://hub.docker.com/
 - https://docs.docker.com/engine/reference/commandline/docker/
@@ -208,3 +366,5 @@ will happen at `Login to Amazon ECR`.
 - https://docs.docker.com/build/building/multi-stage/
 - https://docs.docker.com/compose/
 - https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html
+- https://medium.com/awesome-cloud/aws-difference-between-secrets-manager-and-parameter-store-systems-manager-f02686604eae
+- https://medium.com/awesome-cloud/aws-secrets-manager-overview-introduction-to-secrets-manager-getting-started-641bc722cd1a
