@@ -1,6 +1,17 @@
 # Configure aws cli
 
+## Setup account and access key
+
 [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+
+1. Create Account (with required permission like ECR full access).
+2. Set MFA device like [Authy](https://authy.com/).
+3. Create Access Key.
+4. `aws configure --profile <your-long-term-user>` and set 3 keys.
+5. (Optional) Add `aws_mfa_device = arn:aws:iam:...:mfa/<device_name>` to `~/.aws/credentials`.
+
+
+## Get temporary access key with `aws-mfa`
 
 [aws-mfa](https://qiita.com/ogady/items/c17ffe8f7c8e15b15f77)
 
@@ -17,10 +28,6 @@ aws-mfa --profile your-name --device <mfa device id>
 use terraform.tfvars or cli
 ```
 environment_name = "test" # prefix
-keypair_id = "key-*********" # common keypair
-public_subnet_region = "us-east-1a"
-private_subnet_region_1 = "us-east-1a"
-private_subnet_region_2 = "us-east-1b"
 aws_profile = "******" # profile name configured by aws-mfa
 ```
 

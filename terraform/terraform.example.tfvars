@@ -1,6 +1,4 @@
 environment_name = "test"
-keypair_id = ""
-public_subnet_region = "us-east-1a"
-private_subnet_region_1 = "us-east-1a"
-private_subnet_region_2 = "us-east-1b"
+aws_region = "ap-northeast-1" # Tokyo
 aws_profile = ""
+db_password = ""
