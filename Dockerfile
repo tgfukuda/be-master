@@ -3,12 +3,12 @@ FROM golang:1.18.10-alpine3.17 AS builder
 
 WORKDIR /app
 COPY . .
+# alpine doesn't have a curl by default
+RUN apk add curl
 # get sqlc
 RUN curl -L https://github.com/kyleconroy/sqlc/releases/download/v1.18.0/sqlc_1.18.0_linux_amd64.tar.gz | tar xvz
 RUN /app/sqlc generate
 RUN go build -o main main.go
-# alpine doesn't have a curl by default
-RUN apk add curl
 # install migrate command
 RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/migrate.linux-amd64.tar.gz | tar xvz
 
