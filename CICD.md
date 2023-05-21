@@ -268,6 +268,96 @@ $ jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env # write them to env
 See https://docs.aws.amazon.com/cli/latest/reference/ecr/get-login-password.html#examples and
 run `sudo docker pull <aws_account_id>.dkr.ecr.<region>.amazonaws.com`.
 
+## K8s
+
+[Kubernetes](https://kubernetes.io/) is oss container orhcestration engin.
+Automating deployment, scaling, and management of containerized application.
+
+### Components
+
+2 main parts.
+
+1. Worker Node: responsible for each container istself running well.
+    - Kuberlet agent: make sure containers run inside pods.
+    - Container runtimes: Docker, containerd, CRI-O, ...
+    - Kube-proxy: maintain network rules, allow communication with pods
+2. Master Node(Control Plane): responsible for container instances working well.
+    - API Server: frontend for each worker.
+    - etcd: backing store for all cluster data
+    - scheduler: order what it do to unassigned worker node
+    - controller manager: set of controllers like node controller, job controller, endpoint controller, and others.
+    - cloud controller manager: frontend for cloud (aws, gcp, ...) and has several controllers of node controller, route controller, service controller.
+
+```mermaid
+graph LR
+
+  subgraph Control Plane
+    API_Server((API Server))
+    Controller_Manager((Controller Manager))
+    Scheduler((Scheduler))
+    etcd((etcd))
+    API_Server --> etcd
+    API_Server --> Controller_Manager
+    API_Server --> Scheduler
+  end
+
+  subgraph Worker Nodes
+    Kubelet((Kubelet))
+    Kube_Proxy((Kube-Proxy))
+    Pod1((Pod 1))
+    Pod2((Pod 2))
+    Kubelet --> Pod1
+    Kubelet --> Pod2
+    Kube_Proxy --> Pod1
+    Kube_Proxy --> Pod2
+  end
+
+  API_Server --> Kubelet
+```
+
+### Amazon EKS
+
+[EKS](https://ap-northeast-1.console.aws.amazon.com/eks/home) is a fully managed k8s control plane.
+To Update the cluster, EKS provides us very simple UI. (Minimum nodes, Maximum nodes, ...)
+
+#### Required Roles
+
+- For EKS: AmazonEKSClusterPolicy
+- For Worker: AmazonEC2ContainerRegistryReadOnly (for ecr), AmazonEKS_CNI_Policy, AmazonEKSWorkerNodePolicy
+
+### Kubectl
+
+kubectl is a cli for k9s, install it as this [instruction](https://kubernetes.io/docs/tasks/tools/).
+
+Access and update EKS with `aws eks update-kubeconfig --name <EKS_NAME> --region <REGION>`.
+It will update the context in `~/.kube/config`.
+
+```bash
+$ export AWS_PROFILE=... # if needed
+$ kubectl cluster-info # shows eks info itself
+$ kubectl get pods # worker nodes
+```
+
+To add access of eks to not a creater, we use [aws-auth.yaml](https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html).
+
+```yaml
+apiVersion: v1
+ kind: ConfigMap
+ data:
+   mapUsers: |
+     - username: github-ci
+       userarn: <arn of user>
+       groups:
+       - system:masters
+ metadata:
+   name: aws-auth
+   namespace: kube-system
+```
+
+### K9S
+
+Interactive UI for k8s.
+
 ## References
 - https://hub.docker.com/
 - https://docs.docker.com/engine/reference/commandline/docker/
