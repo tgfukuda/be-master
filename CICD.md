@@ -184,7 +184,8 @@ We use https://github.com/marketplace/actions/amazon-ecr-login-action-for-github
 
 **WARN**:
 
-The above workflow seems to be for v1 and
+The above workflow need to configure https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html.
+(PowerUser isn't enough to perform login in the case of private ECR)
 
 ```
 Run aws-actions/amazon-ecr-login@v1
@@ -206,3 +207,4 @@ will happen at `Login to Amazon ECR`.
 - https://kapeli.com/cheat_sheets/Dockerfile.docset/Contents/Resources/Documents/index
 - https://docs.docker.com/build/building/multi-stage/
 - https://docs.docker.com/compose/
+- https://docs.aws.amazon.com/AmazonECR/latest/userguide/security_iam_id-based-policy-examples.html

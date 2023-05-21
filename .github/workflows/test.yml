@@ -51,7 +51,10 @@ jobs:
         which migrate
     
     - name: Install sqlc
-      run: sudo snap install sqlc
+      run: |
+        curl -L https://github.com/kyleconroy/sqlc/releases/download/v1.18.0/sqlc_1.18.0_linux_amd64.tar.gz | tar xvz
+        sudo mv sqlc /usr/bin
+        which sqlc
 
     - name: Gen sql binding
       run: make sqlc
