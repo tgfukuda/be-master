@@ -32,6 +32,8 @@ gRPC provides a way to use it with http request, that is, gRPC gateway.
 It converts http request(s) to gRPC request(s) and binary response(s) to JSON response(s).
 If there's only unary type of requests, In-process transformation applied but basically *Separate proxy server* needed.
 
+When building, add `--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative` to flags.
+
 ## CLI client
 
 https://github.com/ktr0731/evans.
@@ -90,3 +92,8 @@ type SimpleBankServer interface {
 ```
 
 For example, [CreateUser](./rpc_create_user.go).
+
+# Resources
+
+- https://github.com/grpc-ecosystem/grpc-gateway
+- https://github.com/googleapis/googleapis
