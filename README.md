@@ -8,6 +8,9 @@ Each directory contains my summary of this course.
 - docker: 23.0.4
 - sqlc: v1.18.0
 - migrate: dev
+- statik
+- protoc
+- mockgen
 
 ### setup postgres image
 

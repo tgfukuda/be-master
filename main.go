@@ -9,8 +9,10 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq" // importing with name _ is special import to tell go not to remove this deps
+	"github.com/rakyll/statik/fs"
 	api "github.com/tgfukuda/be-master/api"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	_ "github.com/tgfukuda/be-master/docs/statik"
 	"github.com/tgfukuda/be-master/gapi"
 	"github.com/tgfukuda/be-master/pb"
 	"github.com/tgfukuda/be-master/util"
@@ -87,8 +89,13 @@ func runGatewayServer(config util.Config, store db.Store) {
 	mux.Handle("/", grpcMux)
 
 	// host swagger
-	fs := http.FileServer(http.Dir("./docs/swagger"))
-	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatalf("cannot create statik fs")
+	}
+	// fs := http.FileServer(http.Dir("./docs/swagger")) // for directly uses js.
+	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
+	mux.Handle("/swagger/", swaggerHandler)
 
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)
 	if err != nil {

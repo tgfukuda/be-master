@@ -98,7 +98,7 @@ For example, [CreateUser](./rpc_create_user.go).
 protoc can generate swagger automatically.
 use options like `--openapiv2_out=docs/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank`.
 
-Swagger file generated.
+Swagger file generated. See also [example](https://github.com/grpc-ecosystem/grpc-gateway/blob/main/examples/internal/proto/examplepb/a_bit_of_everything.proto#L611).
 
 Copy dist of https://github.com/swagger-api/swagger-ui and host it.
 
@@ -112,6 +112,8 @@ Copy dist of https://github.com/swagger-api/swagger-ui and host it.
     deepLinking: true,
     presets: [
 ```
+
+For optimization, we can serve the site with [statik](https://github.com/rakyll/statik) as in memory site.
 
 # Resources
 

@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "SimpleBank API",
-    "version": "1.0",
+    "version": "1.1",
     "contact": {
       "name": "tgfukuda",
       "url": "https://github.com/tgfukuda/be-master",
@@ -27,6 +27,8 @@
   "paths": {
     "/v1/create_user": {
       "post": {
+        "summary": "Summary: Create New User",
+        "description": "Use this API to create a new user",
         "operationId": "SimpleBank_CreateUser",
         "responses": {
           "200": {
@@ -59,6 +61,8 @@
     },
     "/v1/login_user": {
       "post": {
+        "summary": "Summary: Login User",
+        "description": "Use this API to login",
         "operationId": "SimpleBank_LoginUser",
         "responses": {
           "200": {
