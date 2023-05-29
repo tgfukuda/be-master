@@ -93,6 +93,26 @@ type SimpleBankServer interface {
 
 For example, [CreateUser](./rpc_create_user.go).
 
+## Doc gen
+
+protoc can generate swagger automatically.
+use options like `--openapiv2_out=docs/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank`.
+
+Swagger file generated.
+
+Copy dist of https://github.com/swagger-api/swagger-ui and host it.
+
+[swagger-initializer.js](../docs/swagger/swagger-initializer.js).
+
+```js
+// the following lines will be replaced by docker/configurator, when it runs in a docker-container
+  window.ui = SwaggerUIBundle({
+    url: "simple_bank.swagger.json",	// this line is target swagger
+    dom_id: '#swagger-ui',
+    deepLinking: true,
+    presets: [
+```
+
 # Resources
 
 - https://github.com/grpc-ecosystem/grpc-gateway
