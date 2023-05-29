@@ -265,7 +265,7 @@ JWT gives us many flexibilities but it's a cause.
     - set "alg" header to none.
     - set "alg" header to "HS256" though server normally verifies token with RSA (sign with their public key.)
 
-## What is PASETO
+### What is PASETO
 
 Platform-Agnostic SEcurity TOken is a new standard for the verification. It also has 2 DSA.
 
@@ -293,7 +293,7 @@ The version 2 is recommended one.
 - asymmetric DSA
     - [Ed25519](https://en.wikipedia.org/wiki/EdDSA)
 
-### Structure of PASETO
+#### Structure of PASETO
 
 - Version: Indicates the version of the PASETO token format being used. It helps define the structure and processing rules for the token. The version is typically represented as a single character, such as "v1" or "v2".
 - Purpose: Describes the intended purpose or use case of the token. It provides semantic context to the token, indicating its purpose, such as "local" for local token use or "public" for public token use. The purpose helps determine how the token should be validated and processed.
@@ -304,6 +304,16 @@ The version 2 is recommended one.
 
 See [token](../token/).
 We use https://github.com/golang-jwt/jwt for JWT.
+
+## Refresh Token
+
+JWT and PASETO lifetime should be as short as possible because the token design is stateless and there's no way to revoke it when leaked.
+However, its UX is bad.
+New session management is refresh token.
+
+Refresh token is stored on DB with `is_blocked` and used when the access token is expired.
+Client send a re-new request with the refresh token.
+It can be a random string and possible to use PASETO too.
 
 ## Resources
 

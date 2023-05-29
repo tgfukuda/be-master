@@ -246,6 +246,9 @@ func TestLoginUser(t *testing.T) {
 					GetUser(gomock.Any(), gomock.Eq(user.Username)).
 					Times(1).
 					Return(user, nil)
+				store.EXPECT().
+					CreateNewSession(gomock.Any(), gomock.Any()).
+					Times(1)
 			},
 			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker) {
 				assert.Equal(t, http.StatusOK, recoder.Code)
