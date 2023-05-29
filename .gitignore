@@ -1,3 +1,4 @@
 db/sqlc/*
 !db/sqlc/*_test.go
 !db/sqlc/store.go
+*.log

@@ -1,6 +1,14 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
 
+Project simple_bank {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # SimpleBank Database
+    **markdown content here**
+  '''
+}
+
 Table accounts as A {
   id bigserial [pk]
   owner varchar [not null]

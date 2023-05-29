@@ -5,6 +5,8 @@ In the first lecture, I learned about how to design db schema and ER-diagram wit
 It produces a MySQL, PostgreSQL, ER-diagram, and others easily from
 [dbdiagram.txt](./dbdiagram.txt) and helps the generated ones with team members.
 
+`dbml2sql` helps us generate Schema on local. Install `npm i -g @dbml/cli` and `make db_schema`.
+
 # Run docker instance for database
 
 In the second lecture, the teacher said run docker container with 
@@ -77,3 +79,16 @@ Note: Need to write migrations manually.
 3. Run `make sqlc` for [go bindings](./sqlc/)
 4. Run `make mock` to add [mock](./mock/). Make sure `make test` passes.
 5. Do work with the table.
+
+# Documantation
+
+[DBDoc](https://dbdocs.io/) powerfully supports documentation.
+
+Docs generated from dbml, we can manage and visualize the schema with a dbml file and `dbdocs build docs/db.dbml`.
+
+```bash
+$ dbdocs login # login dbdocs. use email or github.
+$ dbdocs build docs/db.dbml # build documentation
+$ dbdocs password --set <password> --project <prj_name> # set password to the built schema doc
+$ dbdocs remove <prj_name> # remove a project
+```
