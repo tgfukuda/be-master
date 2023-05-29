@@ -1,5 +1,7 @@
 # gRPC
 
+First of all, meet [the requirements](https://grpc.io/docs/languages/go/quickstart/).
+
 ## Concept
 
 Remote Procedure Call(RPC) was originally developed by Google.
