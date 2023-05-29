@@ -70,3 +70,23 @@ email (TYPE_STRING) => xxx@example.io
 password (TYPE_STRING) => abc
 command call: rpc error: code = Unimplemented desc = method CreateUser not implemented
 ```
+
+## Implement gAPI
+
+Stubs are created with `.proto` files and we need to implement actual logics.
+
+To do that, [service file](../proto/service_simple_bank.proto) helps us.
+We need to implement the interface
+
+```go
+// SimpleBankServer is the server API for SimpleBank service.
+// All implementations must embed UnimplementedSimpleBankServer
+// for forward compatibility
+type SimpleBankServer interface {
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
+	mustEmbedUnimplementedSimpleBankServer()
+}
+```
+
+For example, [CreateUser](./rpc_create_user.go).
