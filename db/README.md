@@ -69,3 +69,11 @@ Therefore, `000nnn_xxx_yyy.up.sql` should be the reverse transformation
 against `000nnn_xxx_yyy.down.sql`.
 
 Note: Need to write migrations manually.
+
+# Flow of add new table to schema
+
+1. Run `migrate create -ext sql -dir db/migration/ -seq <desc_of_migrate>` to add empty [up and down script](./migration/). Make sure the migration can be applied by `make migrateup` (`make postgres` and `make createdb` if needed).
+2. Add queries inside [queries](./query/).
+3. Run `make sqlc` for [go bindings](./sqlc/)
+4. Run `make mock` to add [mock](./mock/). Make sure `make test` passes.
+5. Do work with the table.
