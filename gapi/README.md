@@ -31,3 +31,42 @@ There're 4 types gRPC at the communication perspective (unary & streaming on bot
 gRPC provides a way to use it with http request, that is, gRPC gateway.
 It converts http request(s) to gRPC request(s) and binary response(s) to JSON response(s).
 If there's only unary type of requests, In-process transformation applied but basically *Separate proxy server* needed.
+
+## CLI client
+
+https://github.com/ktr0731/evans.
+
+1. Download release https://github.com/ktr0731/evans/releases
+2. `tar xf path/to/evans_linux_..._.tar.gz`.
+3. `mv path/to/extracted/evans /usr/local/bin`.
+
+evans allows us to interact the rpc
+
+```bash
+$ evans --host localhost --port 9090 -r repl
+
+  ______
+ |  ____|
+ | |__    __   __   __ _   _ __    ___
+ |  __|   \ \ / /  / _. | | '_ \  / __|
+ | |____   \ V /  | (_| | | | | | \__ \
+ |______|   \_/    \__,_| |_| |_| |___/
+
+ more expressive universal gRPC client
+
+
+pb.SimpleBank@localhost:9090> show service
++------------+------------+-------------------+--------------------+
+|  SERVICE   |    RPC     |   REQUEST TYPE    |   RESPONSE TYPE    |
++------------+------------+-------------------+--------------------+
+| SimpleBank | CreateUser | CreateUserRequest | CreateUserResponse |
+| SimpleBank | LoginUser  | LoginUserRequest  | LoginUserResponse  |
++------------+------------+-------------------+--------------------+
+
+pb.SimpleBank@localhost:9090> call CreateUser
+username (TYPE_STRING) => tg
+full_name (TYPE_STRING) => xxxx
+email (TYPE_STRING) => xxx@example.io
+password (TYPE_STRING) => abc
+command call: rpc error: code = Unimplemented desc = method CreateUser not implemented
+```
