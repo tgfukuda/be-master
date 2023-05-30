@@ -120,6 +120,53 @@ For optimization, we can serve the site with [statik](https://github.com/rakyll/
 In gRPC, We need to write validation code by hand instead of `bindings` tags. See [val](../val/validator.go).
 However, it can handle some errors simultaneously compared to Gin's one.
 
+## Logging and Intercepter
+
+We can define intercepters with
+
+```go
+// UnaryInterceptor returns a ServerOption that sets the UnaryServerInterceptor for the
+// server. Only one unary interceptor can be installed. The construction of multiple
+// interceptors (e.g., chaining) can be implemented at the caller.
+func UnaryInterceptor(i UnaryServerInterceptor) ServerOption {
+	return newFuncServerOption(func(o *serverOptions) {
+		if o.unaryInt != nil {
+			panic("The unary server interceptor was already set and may not be reset.")
+		}
+		o.unaryInt = i
+	})
+}
+```
+
+See [logger.go](./logger.go).
+
+Log should includes
+
+- gRPC method
+- Request duration
+- Response status code
+- JSON structured
+- Easily parsed and indexed (with Logstash, fluentd, Grafana, ...etc)
+
+[zerolog](https://github.com/rs/zerolog) make it easy.
+
+We can change the log level easily and add each type of info as its type.
+
+```go
+logger := log.Info()
+	if err != nil {
+		logger = log.Error().Err(err)
+	}
+
+logger.
+  Str("protocol", "grpc").
+  Str("method", info.FullMethod).
+  Dur("duration", duration).
+  Int("status_code", int(statusCode)).
+  Str("status_text", statusCode.String()).
+  Msg("receive a gRPC call")
+```
+
 # Resources
 
 - https://github.com/grpc-ecosystem/grpc-gateway
