@@ -31,7 +31,7 @@ Using [sqlc](https://sqlc.dev/) - metaprogramming of golang
 - Pros: As fast as database/sql and easy to use. Automatic code gen. Catch sql error before code gen.
 - Cons: only for postgres, mysql is experimental. (now, it seems to supports postgres, mysql, sqlite. see, https://docs.sqlc.dev/en/latest/reference/language-support.html)
 
-## sqlc installation
+## Sqlc installation
 
 refer to https://github.com/kyleconroy/sqlc.
 
@@ -39,7 +39,7 @@ refer to https://github.com/kyleconroy/sqlc.
 go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 ```
 
-## sqlc configuration
+## Sqlc configuration
 
 There're 2 types of [configuration format](https://docs.sqlc.dev/en/stable/reference/config.html) now.
 
@@ -101,7 +101,7 @@ CREATE TABLE "accounts" (
 );
 ```
 
-### sqlc tips
+### Sqlc tips
 
 To name a variables explicitly,
 
@@ -134,6 +134,16 @@ func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalancePa
 	return i, err
 }
 ```
+
+### Partial Update
+
+There're some way to do that.
+
+1. `CASE WHEN ... THEN ... ELSE ... END` statement. - a bit complicated.
+2. [Nullable Parameters](https://docs.sqlc.dev/en/stable/howto/named_parameters.html#nullable-parameters). - seems better.
+
+See `UpdateUser` in [user.sql](./query/user.sql).
+[COALESCE](https://www.w3schools.com/sql/func_sqlserver_coalesce.asp) returns first non null statement in the list.
 
 ## Generated codes
 
