@@ -72,6 +72,10 @@ against `000nnn_xxx_yyy.down.sql`.
 
 Note: Need to write migrations manually.
 
+## Migration in code
+
+https://github.com/golang-migrate/migrate#use-in-your-go-project.
+
 # Flow of add new table to schema
 
 1. Run `migrate create -ext sql -dir db/migration/ -seq <desc_of_migrate>` to add empty [up and down script](./migration/). Make sure the migration can be applied by `make migrateup` (`make postgres` and `make createdb` if needed).

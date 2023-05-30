@@ -7,6 +7,9 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq" // importing with name _ is special import to tell go not to remove this deps
 	"github.com/rakyll/statik/fs"
@@ -32,11 +35,29 @@ func main() {
 		log.Fatal("can't connect to db:", err)
 	}
 
+	// run db migration
+	runDBMigration(config.MigrationURL, config.DBSource)
+
 	store := db.NewStore(conn)
 
 	go runGatewayServer(config, store)
 
 	runGRPCServer(config, store)
+}
+
+func runDBMigration(migrationURL, dbSource string) {
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal("cannot create new migration instance", err)
+	}
+
+	if err := migration.Up(); err == migrate.ErrNoChange {
+		log.Printf("no change detected. migration skipped")
+	} else if err != nil {
+		log.Fatal("failed to run migrate up:", err)
+	} else if err == nil {
+		log.Printf("db migrated successfully")
+	}
 }
 
 func runGRPCServer(config util.Config, store db.Store) {
