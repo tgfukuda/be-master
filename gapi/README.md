@@ -115,6 +115,11 @@ Copy dist of https://github.com/swagger-api/swagger-ui and host it.
 
 For optimization, we can serve the site with [statik](https://github.com/rakyll/statik) as in memory site.
 
+## Validation
+
+In gRPC, We need to write validation code by hand instead of `bindings` tags. See [val](../val/validator.go).
+However, it can handle some errors simultaneously compared to Gin's one.
+
 # Resources
 
 - https://github.com/grpc-ecosystem/grpc-gateway
