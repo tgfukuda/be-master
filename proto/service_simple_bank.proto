@@ -4,6 +4,7 @@ package pb;
 
 import "google/api/annotations.proto";
 import  "rpc_create_user.proto";
+import  "rpc_update_user.proto";
 import  "rpc_login_user.proto";
 
 option go_package = "github.com/tgfukuda/be-master/pb";
@@ -46,5 +47,15 @@ service SimpleBank {
           description: "Use this API to login";
           summary: "Summary: Login User";
         };
+    }
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+      option (google.api.http) = {
+          post: "/v1/update_user"
+          body: "*"
+      };
+      option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        description: "Use this API to update user";
+        summary: "Summary: Update User";
+      };
     }
 }

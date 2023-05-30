@@ -69,6 +69,10 @@ and add below to settings.json.
 }
 ```
 
+### Deprecation of optional and required
+
+`optional` and `required` keywords are deprecated and all of the parameter is optional now.
+
 ## Define RPC
 
 Define service to extract rpcs.
