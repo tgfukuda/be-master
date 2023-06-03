@@ -13,6 +13,8 @@ Other way to do that is [Redis](https://redis.io/), message broker and backgroun
 
 Tasks typically managed by queue and worker, [Asynq](https://github.com/hibiken/asynq) is one of such management library.
 
+Note: asynq is still under heavy development and there might be breaking changes.
+
 There're a distributor and a processor for the task management
 
 - Distributor: Enqueue tasks when called
@@ -63,6 +65,61 @@ server := asynq.NewServer(
             QueueCritical: 10,
             QueueDefault:  5,
         },
+    },
+)
+```
+
+### Redis Error Handler and logger
+
+For custom logging of redis,
+
+```go
+type Logging interface {
+	Printf(ctx context.Context, format string, v ...interface{})
+}
+```
+
+is need to implement.
+Similarly, asynq also has same strategy for custom logging
+and [asynq one](https://github.com/hibiken/asynq/blob/master/server.go#L268) is
+
+```go
+// Logger supports logging at various log levels.
+type Logger interface {
+	// Debug logs a message at Debug level.
+	Debug(args ...interface{})
+
+	// Info logs a message at Info level.
+	Info(args ...interface{})
+
+	// Warn logs a message at Warning level.
+	Warn(args ...interface{})
+
+	// Error logs a message at Error level.
+	Error(args ...interface{})
+
+	// Fatal logs a message at Fatal level
+	// and process will exit with status set to 1.
+	Fatal(args ...interface{})
+}
+```
+
+see [logger.go](./logger.go).
+
+To handle errors in redis worker, we must set error handler in the config. Otherwise, nothing will happen by default.
+
+```go
+server := asynq.NewServer(
+    redisOpt,
+    asynq.Config{
+        Queues: map[string]int{
+            QueueCritical: 10,
+            QueueDefault:  5,
+        },
+        ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
+            log.Error().Err(err).Str("type", task.Type()).Bytes("payload", task.Payload()).Msg("process task failed")
+        }),
+        Logger: logger,
     },
 )
 ```
