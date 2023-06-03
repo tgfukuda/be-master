@@ -123,3 +123,23 @@ server := asynq.NewServer(
     },
 )
 ```
+
+### Importance of delay
+
+When processing task like [rpc_create_user.go](../gapi/rpc_create_user.go), there's db commmitment.
+Task Distribution will succeed but process can fail because the commitment can take some time due to a conjunction.
+
+For such reason,
+
+```go
+if err == sql.ErrNoRows {
+    return fmt.Errorf("user doesn't exist: %w", asynq.SkipRetry)
+}
+```
+
+can cause an unexpected behavior even though the commitment still not committed.
+
+To avoid it,
+
+- Enough delay for db commitment (and other components)
+- Retry the task even in the case that it seems not to retry at a glance.
