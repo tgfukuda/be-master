@@ -167,6 +167,15 @@ logger.
   Msg("receive a gRPC call")
 ```
 
+### Note: Server and SeverMux
+
+Both Server and ServerMux are related to creating HTTP servers, but they serve different purposes:
+
+- Server: The Server type in Go is used to create a general-purpose HTTP server. It provides a foundation for building an HTTP server that can handle incoming requests and dispatch them to appropriate handlers. The Server type from the net/http package is responsible for managing connections, listening for incoming requests on a specific port, and invoking the appropriate handler for each request. It handles the low-level networking aspects of the server.
+- ServerMux: The ServerMux type, also known as a multiplexer or router, is an implementation of the http.Handler interface. It is used to route incoming HTTP requests to their corresponding handlers based on the request's URL path. The ServerMux allows you to define multiple routes and associate each route with a specific handler function or http.Handler. It examines the URL path of incoming requests and determines which handler should be invoked.
+
+In summary, the Server type manages the HTTP server itself, while the ServerMux type is responsible for routing incoming requests to their appropriate handlers within the server.
+
 # Resources
 
 - https://github.com/grpc-ecosystem/grpc-gateway
