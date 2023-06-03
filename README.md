@@ -34,9 +34,14 @@ make sqlc
 ## Summaries
 
 - [DB schema management](./db/README.md)
-- [Testing](./db//TEST.md)
+- [Testing](./db/TEST.md)
 - [CRUD operations](./db/CRUD.md)
 - [ACID property of DB](./db/ACID.md)
 - [Web framework: Gin](./api/README.md)
 - [Token Based Authentication](./api/AUTH.md)
 - [Middlewares](./api/MIDLLEWARE.md)
+- [gRPC](./gapi/README.md)
+- [protoc](./proto/README.md)
+- [Infrastructure](./terraform/README.md)
+- [Task and Background Worker](./worker/README.md)
+- [Continuous Integration/Continuous Development](./CICD.md)
