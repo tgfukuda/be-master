@@ -1,4 +1,5 @@
 db/sqlc/*
 !db/sqlc/*_test.go
 !db/sqlc/store.go
+!db/sqlc/tx_*.go
 *.log
