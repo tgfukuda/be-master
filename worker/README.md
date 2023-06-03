@@ -15,8 +15,54 @@ Tasks typically managed by queue and worker, [Asynq](https://github.com/hibiken/
 
 There're a distributor and a processor for the task management
 
-- Distributor: Enqueue tasks
-- Processor: Process each task
+- Distributor: Enqueue tasks when called
+    ```go
+    task := asynq.NewTask(TaskSendVerifyEmail, jsonPayload, opts...)
+	info, err := distributor.client.EnqueueContext(ctx, task)
+	if err != nil {
+		return fmt.Errorf("failed to enqueue task: %w", err)
+	}
+    ```
+- Processor: Process each task on the other process (or server)
+    ```go
+    mux := asynq.NewServeMux()
+	mux.HandleFunc(TaskSendVerifyEmail, processor.ProcessTaskSendVerifyEmail)
+	return processor.server.Start(mux)
+    ```
 
 see [distributor.go](./distributor.go) and [processor.go](./processor.go).
 The processor will be stand alone server to do them.
+
+### Redis Config and Run Server
+
+Redis server can run with [redis-docker](https://hub.docker.com/_/redis).
+After that, the task processor redis client is up, [main.go](../main.go).
+
+To distribute task, we use the [distributor](./distributor.go) like [rpc_create_user.go](../gapi/rpc_create_user.go).
+```go
+taskPayload := &worker.PayloadSendVerifyEmail{
+    Username: user.Username,
+}
+opts := []asynq.Option{
+    asynq.MaxRetry(10),                // up to 10 retry
+    asynq.ProcessIn(10 * time.Second), // 10 seconds delay
+    asynq.Queue(worker.QueueCritical), // add critical instead of default
+}
+err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+if err != nil {
+    return nil, status.Errorf(codes.Internal, "failed to distribute task to send verify email %s", err)
+}
+```
+
+One advantage to use redis is an easy configuration.
+```go
+server := asynq.NewServer(
+    redisOpt,
+    asynq.Config{
+        Queues: map[string]int{
+            QueueCritical: 10,
+            QueueDefault:  5,
+        },
+    },
+)
+```
