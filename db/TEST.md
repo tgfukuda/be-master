@@ -90,6 +90,16 @@ Source mode is more suitable for prroduction but we use Reflect for simplicity.
     ```
     The idea is to specify how many times the interface should called and what arguments are.
 
+## Skip Tests
+
+To skip tests for some reasons, we can use `-short` flag for testing and
+
+```go
+if testing.Short() {
+    t.Skip()
+}
+```
+
 ## References
 
 - [Mock,Stub,Dummy,Fake](https://stackoverflow.com/questions/3459287/whats-the-difference-between-a-mock-stub)
