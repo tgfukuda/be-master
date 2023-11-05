@@ -78,7 +78,7 @@ func (processor *RedisTaskProcessor) ProcessTaskSendVerifyEmail(
 				"Thank you for registering with us!<br/>"+
 				"Please <a href=\"%s\">click here<a/> to verify your email address.<br/>",
 			user.Username,
-			fmt.Sprintf("http://simplebank.org/verify_email?id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode),
+			fmt.Sprintf("http://localhost/v1/verify_email?email_id=%d&secret_code=%s", verifyEmail.ID, verifyEmail.SecretCode),
 		), []string{user.Email}, nil, nil, nil,
 	)
 	if err != nil {
