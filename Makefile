@@ -1,13 +1,14 @@
 DB_URL=postgres://root:secret@localhost:5432/simple_bank?sslmode=disable
+POSTGRES_CONTAINER=postgres12
 
 postgres:
-	sudo docker run --name postgres12 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
+	docker run --name $(POSTGRES_CONTAINER) -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
 
 createdb:
-	sudo docker exec -it postgres12 createdb --username=root --owner=root simple_bank
+	docker exec -it $(POSTGRES_CONTAINER) createdb --username=root --owner=root simple_bank
 
 dropdb:
-	sudo docker exec -it postgres12 dropdb simple_bank
+	docker exec -it $(POSTGRES_CONTAINER) dropdb simple_bank
 
 migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
@@ -21,8 +22,11 @@ migratedown:
 migratedown1:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down 1
 
+new_migration:
+	migrate create -ext sql -dir db/migration/ -seq $(name)
+
 psql:
-	sudo docker exec -it postgres12 psql -U root simple_bank
+	docker exec -it $(POSTGRES_CONTAINER) psql -U root simple_bank
 
 db_docs:
 	dbdocs build docs/db.dbml
@@ -56,6 +60,6 @@ evans:
 	evans --host localhost --port 9090 -r repl
 
 redis:
-	sudo docker run --name redis -p 6379:6379 -d redis:7-alpine
+	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: createdb dropdb postgres migrateup migratedown migrateup1 migratedown1 psql sqlc test server db_docs db_schema mock proto evans redis
+.PHONY: createdb dropdb postgres migrateup migratedown migrateup1 migratedown1 psql sqlc test server db_docs db_schema mock proto evans redis new_migration

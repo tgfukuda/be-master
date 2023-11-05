@@ -2,6 +2,8 @@ version: "3.9"
 services:
   postgres:
     image: postgres:12-alpine
+    ports:
+      - "8383:5432"
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=secret
@@ -12,8 +14,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" # http gateway
-      - "9090:9090" # rpc
+      - "8980:8080" # http gateway
+      - "9990:9090" # rpc
     environment:
       - DB_SOURCE=postgres://root:secret@postgres:5432/simple_bank?sslmode=disable
     depends_on:

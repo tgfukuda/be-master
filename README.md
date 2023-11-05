@@ -12,20 +12,28 @@ Each directory contains my summary of this course.
 - protoc
 - mockgen
 
-### setup postgres image
+### Setup postgres image
 
 ```
 make postgres
 ```
 
-### migration
+### Migration
+
+Migration
 
 ```
 make createdb # if needed.
 make migrateup
 ```
 
-### gen sql orm client
+Create New migration file
+
+```
+make new_migration name=<name>
+```
+
+### Generate sql orm client
 
 ```
 make sqlc

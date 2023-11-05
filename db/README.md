@@ -5,7 +5,10 @@ In the first lecture, I learned about how to design db schema and ER-diagram wit
 It produces a MySQL, PostgreSQL, ER-diagram, and others easily from
 [dbdiagram.txt](./dbdiagram.txt) and helps the generated ones with team members.
 
-`dbml2sql` helps us generate Schema on local. Install `npm i -g @dbml/cli` and `make db_schema`.
+`dbml2sql` helps us generate and update schema on local.
+Install `npm i -g @dbml/cli` and `make db_schema`.
+Note that it illustrate the current schema but not for migration.
+If there's a running db, be careful not to break it.
 
 # Run docker instance for database
 
@@ -32,7 +35,8 @@ also show us the table details.
 
 ## GUI tools
 
-[TablePlus](https://tableplus.com/)
+- [TablePlus](https://tableplus.com/)
+- [DBeaver](https://dbeaver.io/)
 
 # Migration
 
@@ -51,7 +55,7 @@ will install migrate at `$GOPATH/bin/migrate`.
 We can use migrate to generate empty migration file with
 
 ```
-$ migrate create -ext sql -dir db/migration/ -seq <desc_of_migrate>
+$ migrate create -ext sql -dir db/migration/ -seq <description_of_migrate>
 ```
 
 ## Best practice
