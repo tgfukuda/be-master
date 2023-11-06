@@ -1,6 +1,6 @@
 # Go testing
 
-See also [api](../api/README.md).
+See also [api](../api/README.md), [mockery](./MIGRATION_MOCKERY.md).
 
 go test file typically put the same directory as the target functionality and suffix with _test.
 
