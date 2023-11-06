@@ -42,7 +42,7 @@ make sqlc
 ## Summaries
 
 - [DB schema management](./db/README.md)
-- [Testing](./db/TEST.md)
+- [Testing](./TEST.md)
 - [CRUD operations](./db/CRUD.md)
 - [ACID property of DB](./db/ACID.md)
 - [Web framework: Gin](./api/README.md)

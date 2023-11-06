@@ -13,8 +13,8 @@ import (
 	"github.com/golang/mock/gomock"
 	_ "github.com/lib/pq" // importing with name _ is special import to tell go not to remove this deps
 	"github.com/stretchr/testify/assert"
-	mockdb "github.com/tgfukuda/be-master/db/mock"
 	db "github.com/tgfukuda/be-master/db/sqlc"
+	"github.com/tgfukuda/be-master/mocks"
 	"github.com/tgfukuda/be-master/token"
 	"github.com/tgfukuda/be-master/util"
 )
@@ -37,7 +37,7 @@ type APITestCase struct {
 	method        string
 	body          gin.H // expected json struct. nil if no body.
 	setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-	buildStubs    func(store *mockdb.MockStore)
+	buildStubs    func(store *mocks.Store)
 	checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder, tokenMaker token.Maker)
 }
 
@@ -46,7 +46,7 @@ func (tc *APITestCase) Run(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		store := mockdb.NewMockStore(ctrl)
+		store := mocks.NewStore(t)
 		tc.buildStubs(store)
 
 		server := newTestServer(t, store)
